@@ -1,0 +1,939 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>THREADCRAFT 3D — Diseñador de Ropa</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+:root{
+  --bg:#f8f7f4;--surface:#ffffff;--surface2:#f2f1ee;--surface3:#e8e7e3;
+  --border:#e0dfd9;--border2:#ccc;
+  --accent:#1a1a1a;--accent2:#ff3c00;--yellow:#e8ff00;
+  --text:#1a1a1a;--muted:#888;--muted2:#aaa;
+  --radius:10px;--radius2:16px;--shadow:0 2px 20px rgba(0,0,0,0.08);
+}
+html,body{height:100%;overflow:hidden;background:var(--bg);}
+body{font-family:'DM Sans',sans-serif;display:flex;flex-direction:column;color:var(--text);}
+
+/* TOP BAR */
+.topbar{height:56px;background:var(--surface);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 24px;flex-shrink:0;box-shadow:var(--shadow);}
+.logo{font-family:'Bebas Neue';font-size:24px;letter-spacing:3px;color:var(--text);}
+.logo span{color:var(--accent2);}
+.topbar-actions{display:flex;gap:10px;align-items:center;}
+.btn-outline{padding:8px 18px;border:1.5px solid var(--border2);background:none;color:var(--text);border-radius:var(--radius);font-size:13px;cursor:pointer;font-family:'DM Sans';font-weight:500;transition:all .15s;}
+.btn-outline:hover{border-color:var(--text);background:var(--surface2);}
+.btn-primary{padding:9px 22px;background:var(--text);color:#fff;border:none;border-radius:var(--radius);font-size:13px;cursor:pointer;font-family:'DM Sans';font-weight:500;transition:all .15s;}
+.btn-primary:hover{background:#333;}
+.btn-export{padding:9px 22px;background:var(--accent2);color:#fff;border:none;border-radius:var(--radius);font-size:13px;font-weight:600;cursor:pointer;font-family:'DM Sans';transition:all .15s;}
+.btn-export:hover{background:#e03000;}
+
+/* MAIN */
+.main{flex:1;display:flex;overflow:hidden;}
+
+/* LEFT SIDEBAR */
+.sidebar{width:72px;background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;align-items:center;padding:12px 0;gap:4px;}
+.sidebar-btn{width:48px;height:48px;border:none;background:none;border-radius:var(--radius);cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;transition:all .15s;color:var(--muted);}
+.sidebar-btn:hover{background:var(--surface2);color:var(--text);}
+.sidebar-btn.active{background:var(--text);color:#fff;}
+.sidebar-btn svg{width:20px;height:20px;}
+.sidebar-btn span{font-size:8px;letter-spacing:.5px;font-family:'DM Mono';}
+
+/* PANEL */
+.panel{width:280px;background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden;box-shadow:2px 0 10px rgba(0,0,0,0.04);}
+.panel-header{padding:20px 20px 0;font-size:11px;font-weight:500;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);font-family:'DM Mono';}
+.panel-body{flex:1;overflow-y:auto;padding:16px 20px;}
+.panel-body::-webkit-scrollbar{width:3px;}
+.panel-body::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px;}
+
+/* SECTION */
+.sec{margin-bottom:22px;}
+.sec-label{font-size:11px;font-weight:500;color:var(--muted);letter-spacing:1px;text-transform:uppercase;margin-bottom:10px;font-family:'DM Mono';}
+
+/* GARMENT PILLS */
+.garment-row{display:flex;flex-wrap:wrap;gap:6px;}
+.g-pill{padding:6px 12px;border:1.5px solid var(--border);border-radius:20px;font-size:12px;cursor:pointer;transition:all .15s;background:var(--surface);color:var(--muted);font-weight:500;}
+.g-pill:hover{border-color:var(--border2);color:var(--text);}
+.g-pill.active{border-color:var(--text);background:var(--text);color:#fff;}
+
+/* COLOR SWATCHES */
+.swatches{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px;}
+.swatch{width:30px;height:30px;border-radius:50%;cursor:pointer;border:2px solid transparent;transition:all .15s;position:relative;}
+.swatch:hover{transform:scale(1.1);}
+.swatch.active{border-color:var(--text);}
+.swatch.active::after{content:'';position:absolute;inset:4px;border-radius:50%;border:2px solid rgba(255,255,255,0.8);}
+.swatch.light.active::after{border-color:rgba(0,0,0,0.3);}
+
+/* CUSTOM COLOR ROW */
+.color-pick-row{display:flex;align-items:center;gap:10px;padding:10px;background:var(--surface2);border-radius:var(--radius);border:1px solid var(--border);}
+.color-pick-row label{font-size:12px;color:var(--muted);flex:1;}
+.color-pick-row input[type=color]{width:36px;height:28px;border:1.5px solid var(--border2);border-radius:6px;cursor:pointer;background:none;}
+
+/* SLIDERS */
+.sl-group{display:flex;flex-direction:column;gap:12px;}
+.sl-item{display:flex;flex-direction:column;gap:5px;}
+.sl-top{display:flex;justify-content:space-between;font-size:11px;}
+.sl-top .sl-name{color:var(--muted);font-weight:500;}
+.sl-top .sl-val{color:var(--text);font-family:'DM Mono';font-size:11px;}
+input[type=range]{-webkit-appearance:none;width:100%;height:4px;background:var(--surface3);border-radius:2px;outline:none;cursor:pointer;}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;height:16px;border-radius:50%;background:var(--text);cursor:pointer;border:2px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,.2);}
+
+/* UPLOAD */
+.upload-box{border:1.5px dashed var(--border2);border-radius:var(--radius2);padding:20px;text-align:center;cursor:pointer;transition:all .2s;position:relative;background:var(--surface2);}
+.upload-box:hover{border-color:var(--text);background:var(--surface3);}
+.upload-box input{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%;}
+.upload-box .ub-icon{width:40px;height:40px;background:var(--surface3);border-radius:10px;display:flex;align-items:center;justify-content:center;margin:0 auto 10px;font-size:18px;}
+.upload-box strong{font-size:13px;display:block;margin-bottom:4px;}
+.upload-box p{font-size:11px;color:var(--muted);}
+
+/* TEXT */
+.t-field{width:100%;padding:10px 12px;border:1.5px solid var(--border);border-radius:var(--radius);font-size:13px;font-family:'DM Sans';background:var(--surface);color:var(--text);transition:border .15s;margin-bottom:8px;}
+.t-field:focus{outline:none;border-color:var(--text);}
+.t-select{width:100%;padding:9px 12px;border:1.5px solid var(--border);border-radius:var(--radius);font-size:12px;background:var(--surface);color:var(--text);cursor:pointer;margin-bottom:8px;}
+
+/* CHIPS */
+.chips{display:flex;gap:5px;flex-wrap:wrap;}
+.chip{padding:5px 12px;border:1.5px solid var(--border);border-radius:20px;font-size:11px;cursor:pointer;transition:all .15s;color:var(--muted);background:var(--surface);}
+.chip:hover{border-color:var(--border2);color:var(--text);}
+.chip.active{border-color:var(--text);background:var(--text);color:#fff;}
+
+/* ACTION BTNS */
+.action-row{display:flex;gap:6px;}
+.act-btn{flex:1;padding:8px;border:1.5px solid var(--border);border-radius:var(--radius);font-size:11px;background:var(--surface);color:var(--muted);cursor:pointer;font-family:'DM Sans';transition:all .15s;text-align:center;}
+.act-btn:hover{border-color:var(--border2);color:var(--text);}
+.act-btn.danger:hover{border-color:#e00;color:#e00;}
+
+/* 3D CANVAS AREA */
+.viewport{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;position:relative;background:linear-gradient(135deg,#f0efe9 0%,#e8e7e1 50%,#f0efe9 100%);overflow:hidden;}
+.viewport::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 50% 30%,rgba(255,255,255,.6) 0%,transparent 70%);}
+#threeCanvas{border-radius:var(--radius2);cursor:grab;}
+#threeCanvas:active{cursor:grabbing;}
+
+/* CONTROLS */
+.ctrl-bar{position:absolute;bottom:20px;left:50%;transform:translateX(-50%);display:flex;gap:6px;align-items:center;background:rgba(255,255,255,.85);backdrop-filter:blur(12px);padding:6px 10px;border-radius:30px;border:1px solid var(--border);box-shadow:var(--shadow);}
+.ctrl-btn{width:32px;height:32px;border:none;background:none;border-radius:50%;cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center;transition:all .15s;color:var(--text);}
+.ctrl-btn:hover{background:var(--surface2);}
+.ctrl-sep{width:1px;height:20px;background:var(--border);}
+.ctrl-label{font-size:11px;color:var(--muted);padding:0 6px;font-family:'DM Mono';}
+
+/* HINT */
+.hint{position:absolute;top:16px;left:50%;transform:translateX(-50%);font-size:11px;color:var(--muted);background:rgba(255,255,255,.8);padding:5px 14px;border-radius:20px;border:1px solid var(--border);white-space:nowrap;backdrop-filter:blur(8px);}
+
+/* RIGHT INFO */
+.rinfo{width:200px;background:var(--surface);border-left:1px solid var(--border);padding:20px 16px;display:flex;flex-direction:column;gap:16px;overflow-y:auto;}
+.ri-title{font-size:11px;font-weight:500;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);font-family:'DM Mono';margin-bottom:8px;}
+.ri-card{background:var(--surface2);border-radius:var(--radius);padding:12px;border:1px solid var(--border);}
+.ri-row{display:flex;justify-content:space-between;padding:4px 0;font-size:11px;border-bottom:1px solid var(--border);}
+.ri-row:last-child{border-bottom:none;}
+.ri-row .rk{color:var(--muted);}
+.ri-row .rv{color:var(--text);font-weight:500;font-family:'DM Mono';}
+
+/* PALETTE PRESETS */
+.preset-list{display:flex;flex-direction:column;gap:5px;}
+.preset{display:flex;align-items:center;gap:10px;padding:9px 12px;border:1.5px solid var(--border);border-radius:var(--radius);cursor:pointer;transition:all .15s;background:var(--surface);}
+.preset:hover{border-color:var(--border2);background:var(--surface2);}
+.preset.active{border-color:var(--text);}
+.preset-dots{display:flex;gap:3px;}
+.preset-dot{width:12px;height:12px;border-radius:50%;}
+.preset-name{font-size:12px;color:var(--text);font-weight:500;}
+
+/* TOAST */
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(80px);background:var(--text);color:#fff;padding:12px 24px;border-radius:var(--radius2);font-size:13px;font-weight:500;transition:transform .3s cubic-bezier(.34,1.56,.64,1);z-index:999;box-shadow:0 8px 30px rgba(0,0,0,.2);}
+.toast.show{transform:translateX(-50%) translateY(0);}
+
+/* LOADING */
+.loading{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:var(--bg);z-index:100;flex-direction:column;gap:12px;}
+.loading-ring{width:40px;height:40px;border:3px solid var(--border);border-top-color:var(--text);border-radius:50%;animation:spin .8s linear infinite;}
+.loading p{font-size:12px;color:var(--muted);font-family:'DM Mono';}
+@keyframes spin{to{transform:rotate(360deg);}}
+</style>
+</head>
+<body>
+
+<!-- TOPBAR -->
+<div class="topbar">
+  <div class="logo">THREAD<span>CRAFT</span> <span style="font-size:12px;color:var(--muted);font-family:'DM Mono';letter-spacing:1px;">3D STUDIO</span></div>
+  <div class="topbar-actions">
+    <button class="btn-outline" onclick="resetCamera()">⟳ Reset vista</button>
+    <button class="btn-outline" onclick="saveDesign()">Guardar</button>
+    <button class="btn-export" onclick="exportPNG()">Exportar PNG gratis</button>
+  </div>
+</div>
+
+<!-- MAIN -->
+<div class="main">
+
+<!-- SIDEBAR ICONS -->
+<div class="sidebar">
+  <button class="sidebar-btn active" onclick="setPanel('garment',this)" title="Prenda">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 6l4-2 5 2 5-2 4 2-2 4H4L3 6z"/><rect x="4" y="10" width="16" height="12" rx="1"/></svg>
+    <span>PRENDA</span>
+  </button>
+  <button class="sidebar-btn" onclick="setPanel('color',this)" title="Color">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M12 3v9l6 3"/></svg>
+    <span>COLOR</span>
+  </button>
+  <button class="sidebar-btn" onclick="setPanel('logo',this)" title="Logo">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>
+    <span>LOGO</span>
+  </button>
+  <button class="sidebar-btn" onclick="setPanel('text',this)" title="Texto">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 7V4h16v3M9 20h6M12 4v16"/></svg>
+    <span>TEXTO</span>
+  </button>
+  <div style="flex:1;"></div>
+  <button class="sidebar-btn" onclick="exportPNG()" title="Exportar" style="color:var(--accent2);">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
+    <span>EXPORT</span>
+  </button>
+</div>
+
+<!-- PANEL -->
+<div class="panel">
+  <div class="panel-header" id="panelTitle">Tipo de prenda</div>
+  <div class="panel-body">
+
+    <!-- GARMENT PANEL -->
+    <div id="p-garment">
+      <div class="sec">
+        <div class="sec-label">Estilo</div>
+        <div class="garment-row">
+          <div class="g-pill active" onclick="setGarment('hoodie',this)">Hoodie</div>
+          <div class="g-pill" onclick="setGarment('tshirt',this)">Polera</div>
+          <div class="g-pill" onclick="setGarment('longsleeve',this)">Manga larga</div>
+          <div class="g-pill" onclick="setGarment('raglan',this)">Raglan</div>
+          <div class="g-pill" onclick="setGarment('tanktop',this)">Sin mangas</div>
+          <div class="g-pill" onclick="setGarment('crewneck',this)">Crewneck</div>
+        </div>
+      </div>
+      <div class="sec">
+        <div class="sec-label">Opciones</div>
+        <div style="display:flex;flex-direction:column;gap:8px;">
+          <label style="display:flex;align-items:center;gap:10px;font-size:13px;cursor:pointer;">
+            <input type="checkbox" id="chkSeams" checked onchange="S.seams=this.checked;updateTexture()"> Mostrar costuras
+          </label>
+          <label style="display:flex;align-items:center;gap:10px;font-size:13px;cursor:pointer;">
+            <input type="checkbox" id="chkShadow" checked onchange="S.shadingOn=this.checked;updateTexture()"> Sombreado realista
+          </label>
+          <label style="display:flex;align-items:center;gap:10px;font-size:13px;cursor:pointer;">
+            <input type="checkbox" id="chkBg" onchange="toggleBg(this.checked)"> Fondo transparente al exportar
+          </label>
+        </div>
+      </div>
+      <div class="sec">
+        <div class="sec-label">Auto-rotar</div>
+        <div class="chips">
+          <div class="chip active" onclick="setAutoRotate(false,this)">Desactivado</div>
+          <div class="chip" onclick="setAutoRotate(true,this)">Activado</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- COLOR PANEL -->
+    <div id="p-color" style="display:none;">
+      <div class="sec">
+        <div class="sec-label">Color principal</div>
+        <div class="swatches" id="swatchGrid"></div>
+        <div class="color-pick-row">
+          <label>Personalizado</label>
+          <input type="color" id="customColor" value="#1a1a1a" oninput="applyColor('body',this.value)">
+        </div>
+      </div>
+      <div class="sec">
+        <div class="sec-label">Detalle mangas</div>
+        <div class="color-pick-row">
+          <label>Color mangas</label>
+          <input type="color" id="sleeveColor" value="#141414" oninput="applyColor('sleeve',this.value)">
+        </div>
+        <div class="color-pick-row" style="margin-top:6px;">
+          <label>Ribetes</label>
+          <input type="color" id="ribColor" value="#0d0d0d" oninput="applyColor('rib',this.value)">
+        </div>
+      </div>
+      <div class="sec">
+        <div class="sec-label">Paletas</div>
+        <div class="preset-list" id="presetList"></div>
+      </div>
+    </div>
+
+    <!-- LOGO PANEL -->
+    <div id="p-logo" style="display:none;">
+      <div class="sec">
+        <div class="sec-label">Imagen</div>
+        <div class="upload-box">
+          <input type="file" id="logoInput" accept="image/*" onchange="loadLogo(event)">
+          <div class="ub-icon">⬆</div>
+          <strong>Subir logo o imagen</strong>
+          <p>PNG sin fondo recomendado<br>JPG, SVG, WEBP</p>
+        </div>
+      </div>
+      <div id="logoOpts" style="display:none;">
+        <div class="sec">
+          <div class="sec-label">Ajustes</div>
+          <div class="sl-group">
+            <div class="sl-item">
+              <div class="sl-top"><span class="sl-name">Tamaño</span><span class="sl-val" id="vSize">50%</span></div>
+              <input type="range" min="5" max="100" value="50" oninput="updLogo('size',this.value)">
+            </div>
+            <div class="sl-item">
+              <div class="sl-top"><span class="sl-name">Posición X</span><span class="sl-val" id="vX">50%</span></div>
+              <input type="range" min="0" max="100" value="50" oninput="updLogo('x',this.value)">
+            </div>
+            <div class="sl-item">
+              <div class="sl-top"><span class="sl-name">Posición Y</span><span class="sl-val" id="vY">40%</span></div>
+              <input type="range" min="0" max="100" value="40" oninput="updLogo('y',this.value)">
+            </div>
+            <div class="sl-item">
+              <div class="sl-top"><span class="sl-name">Rotación</span><span class="sl-val" id="vRot">0°</span></div>
+              <input type="range" min="-180" max="180" value="0" oninput="updLogo('rot',this.value)">
+            </div>
+            <div class="sl-item">
+              <div class="sl-top"><span class="sl-name">Opacidad</span><span class="sl-val" id="vOp">100%</span></div>
+              <input type="range" min="10" max="100" value="100" oninput="updLogo('op',this.value)">
+            </div>
+          </div>
+        </div>
+        <div class="action-row" style="margin-bottom:8px;">
+          <button class="act-btn" onclick="flipLogo('h')">Voltear H</button>
+          <button class="act-btn" onclick="flipLogo('v')">Voltear V</button>
+          <button class="act-btn" onclick="centerLogo()">Centrar</button>
+        </div>
+        <button class="act-btn danger" style="width:100%;padding:9px;" onclick="removeLogo()">Quitar imagen</button>
+      </div>
+    </div>
+
+    <!-- TEXT PANEL -->
+    <div id="p-text" style="display:none;">
+      <div class="sec">
+        <div class="sec-label">Contenido</div>
+        <input class="t-field" id="mainText" placeholder="Texto principal..." oninput="updText('main',this.value)" maxlength="30">
+        <input class="t-field" id="subText" placeholder="Subtítulo..." oninput="updText('sub',this.value)" maxlength="30">
+      </div>
+      <div class="sec">
+        <div class="sec-label">Fuente</div>
+        <select class="t-select" onchange="updText('font',this.value)">
+          <option value="'Bebas Neue'">Bebas Neue</option>
+          <option value="Impact">Impact</option>
+          <option value="Georgia">Georgia Serif</option>
+          <option value="'DM Mono'">DM Mono</option>
+          <option value="'Courier New'">Courier New</option>
+          <option value="Verdana">Verdana</option>
+        </select>
+        <div class="sl-group">
+          <div class="sl-item">
+            <div class="sl-top"><span class="sl-name">Tamaño</span><span class="sl-val" id="vTSize">32</span></div>
+            <input type="range" min="10" max="80" value="32" oninput="updText('size',+this.value);document.getElementById('vTSize').textContent=this.value">
+          </div>
+          <div class="sl-item">
+            <div class="sl-top"><span class="sl-name">Posición Y</span><span class="sl-val" id="vTY">65%</span></div>
+            <input type="range" min="10" max="90" value="65" oninput="updText('y',+this.value);document.getElementById('vTY').textContent=this.value+'%'">
+          </div>
+        </div>
+      </div>
+      <div class="sec">
+        <div class="sec-label">Color</div>
+        <div class="color-pick-row">
+          <label>Color texto</label>
+          <input type="color" id="textCol" value="#ffffff" oninput="updText('color',this.value)">
+        </div>
+      </div>
+      <div class="sec">
+        <div class="sec-label">Efecto</div>
+        <div class="chips">
+          <div class="chip" onclick="updText('fx','none',this)">Normal</div>
+          <div class="chip active" onclick="updText('fx','shadow',this)">Sombra</div>
+          <div class="chip" onclick="updText('fx','outline',this)">Contorno</div>
+          <div class="chip" onclick="updText('fx','glow',this)">Glow</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- 3D VIEWPORT -->
+<div class="viewport" id="viewport">
+  <div class="loading" id="loading">
+    <div class="loading-ring"></div>
+    <p>Cargando 3D...</p>
+  </div>
+  <canvas id="threeCanvas"></canvas>
+  <div class="hint">🖱 Arrastra para rotar · Scroll para zoom · Click derecho para mover</div>
+  <div class="ctrl-bar">
+    <button class="ctrl-btn" onclick="resetCamera()" title="Reset">⟳</button>
+    <div class="ctrl-sep"></div>
+    <button class="ctrl-btn" onclick="setViewAngle('front')" title="Frente">⬛</button>
+    <button class="ctrl-btn" onclick="setViewAngle('back')" title="Espalda">⬜</button>
+    <button class="ctrl-btn" onclick="setViewAngle('side')" title="Lado">◧</button>
+    <div class="ctrl-sep"></div>
+    <div class="ctrl-label" id="ctrlInfo">FRENTE</div>
+  </div>
+</div>
+
+<!-- RIGHT INFO -->
+<div class="rinfo">
+  <div>
+    <div class="ri-title">Detalles</div>
+    <div class="ri-card">
+      <div class="ri-row"><span class="rk">Prenda</span><span class="rv" id="ri-garment">HOODIE</span></div>
+      <div class="ri-row"><span class="rk">Color</span><span class="rv" id="ri-color">#1a1a1a</span></div>
+      <div class="ri-row"><span class="rk">Logo</span><span class="rv" id="ri-logo">—</span></div>
+      <div class="ri-row"><span class="rk">Texto</span><span class="rv" id="ri-text">—</span></div>
+    </div>
+  </div>
+  <div>
+    <div class="ri-title">Exportar</div>
+    <div style="display:flex;flex-direction:column;gap:6px;">
+      <button class="btn-primary" style="width:100%;padding:10px;" onclick="exportPNG()">PNG sin marca</button>
+      <button class="btn-outline" style="width:100%;padding:9px;" onclick="exportJPG()">JPG alta calidad</button>
+    </div>
+  </div>
+  <div>
+    <div class="ri-title">Ayuda</div>
+    <div style="font-size:11px;color:var(--muted);line-height:1.9;">
+      • Arrastra el modelo 3D<br>
+      • Scroll = zoom<br>
+      • Sube logo PNG<br>
+      • Exporta gratis<br>
+      • Sin marca de agua
+    </div>
+  </div>
+</div>
+
+</div><!-- end main -->
+
+<div class="toast" id="toast">✓ Listo</div>
+
+<!-- THREE.JS -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+// ================================================================
+// STATE
+// ================================================================
+const S = {
+  garment:'hoodie',
+  bodyColor:'#1a1a1a', sleeveColor:'#141414', ribColor:'#0d0d0d',
+  logo:null, logoX:50, logoY:40, logoSize:50, logoOp:1, logoRot:0, logoFlipH:false, logoFlipV:false,
+  text:'', textSub:'', textColor:'#ffffff', textSize:32, textY:65, textFont:"'Bebas Neue'", textFx:'shadow',
+  seams:true, shadingOn:true, transp:false, autoRotate:false
+};
+
+// ================================================================
+// THREE.JS SETUP
+// ================================================================
+const vp = document.getElementById('viewport');
+const cnv = document.getElementById('threeCanvas');
+
+let W = vp.clientWidth, H = vp.clientHeight - 56;
+cnv.width = W; cnv.height = H;
+
+const renderer = new THREE.WebGLRenderer({canvas:cnv, antialias:true, alpha:true, preserveDrawingBuffer:true});
+renderer.setSize(W, H);
+renderer.setPixelRatio(Math.min(window.devicePixelRatio,2));
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+renderer.outputEncoding = THREE.sRGBEncoding;
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 1.1;
+
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0xf0efe9);
+
+const camera = new THREE.PerspectiveCamera(35, W/H, 0.1, 100);
+camera.position.set(0, 0.5, 3.8);
+
+// Lights
+const ambient = new THREE.AmbientLight(0xffffff, 0.6);
+scene.add(ambient);
+
+const key = new THREE.DirectionalLight(0xffffff, 1.2);
+key.position.set(3, 5, 4);
+key.castShadow = true;
+scene.add(key);
+
+const fill = new THREE.DirectionalLight(0xfff5e0, 0.4);
+fill.position.set(-3, 2, 2);
+scene.add(fill);
+
+const rim = new THREE.DirectionalLight(0xe0f0ff, 0.3);
+rim.position.set(0, -2, -4);
+scene.add(rim);
+
+// ================================================================
+// TEXTURE CANVAS (2D design)
+// ================================================================
+const TC = document.createElement('canvas');
+TC.width = 1024; TC.height = 1024;
+const tc = TC.getContext('2d');
+
+const tex = new THREE.CanvasTexture(TC);
+tex.flipY = false;
+
+// ================================================================
+// GEOMETRY HELPERS
+// ================================================================
+function hexToRgb(hex){
+  const r=parseInt(hex.slice(1,3),16)/255;
+  const g=parseInt(hex.slice(3,5),16)/255;
+  const b=parseInt(hex.slice(5,7),16)/255;
+  return new THREE.Color(r,g,b);
+}
+
+function shade(col,p){
+  let r=parseInt(col.slice(1,3),16),g=parseInt(col.slice(3,5),16),b=parseInt(col.slice(5,7),16);
+  r=Math.max(0,Math.min(255,r+p)); g=Math.max(0,Math.min(255,g+p)); b=Math.max(0,Math.min(255,b+p));
+  return '#'+[r,g,b].map(x=>x.toString(16).padStart(2,'0')).join('');
+}
+
+// ================================================================
+// BUILD HOODIE MESH (simplified realistic shape)
+// ================================================================
+let garmentGroup = new THREE.Group();
+scene.add(garmentGroup);
+
+function buildGarment(){
+  // Remove old
+  while(garmentGroup.children.length) garmentGroup.remove(garmentGroup.children[0]);
+
+  const mat = new THREE.MeshStandardMaterial({map:tex, roughness:0.85, metalness:0.0, side:THREE.FrontSide});
+  const matBack = new THREE.MeshStandardMaterial({map:tex, roughness:0.85, metalness:0.0, side:THREE.BackSide});
+
+  if(S.garment==='hoodie'||S.garment==='crewneck'||S.garment==='tshirt'||S.garment==='longsleeve'||S.garment==='tanktop'||S.garment==='raglan'){
+    // BODY - box rounded
+    const bodyGeo = new THREE.BoxGeometry(1.4, 1.8, 0.35, 8, 12, 4);
+    const bodyPos = bodyGeo.attributes.position;
+    for(let i=0;i<bodyPos.count;i++){
+      let x=bodyPos.getX(i), y=bodyPos.getY(i), z=bodyPos.getZ(i);
+      // Taper shoulders
+      if(y>0.6){ const t=(y-0.6)/0.3; x*=(1-t*0.12); }
+      // Taper bottom
+      if(y<-0.6){ const t=(-y-0.6)/0.3; x*=(1-t*0.05); }
+      // Chest curve
+      if(Math.abs(x)<0.6&&z>0){ z+=0.04*Math.cos((y/1.8)*Math.PI); }
+      bodyPos.setXYZ(i,x,y,z);
+    }
+    bodyGeo.computeVertexNormals();
+    const body = new THREE.Mesh(bodyGeo, mat);
+    body.position.y = -0.1;
+    body.castShadow=true; body.receiveShadow=true;
+    garmentGroup.add(body);
+
+    // SLEEVES
+    const slW = S.garment==='tanktop' ? 0 : (S.garment==='longsleeve'?0.28:0.3);
+    if(slW>0){
+      const slLen = S.garment==='longsleeve'?1.35:(S.garment==='tshirt'?0.7:1.0);
+      [-1,1].forEach(side=>{
+        const slGeo = new THREE.CylinderGeometry(slW*0.85, slW*0.78, slLen, 12, 6);
+        const slPos = slGeo.attributes.position;
+        for(let i=0;i<slPos.count;i++){
+          let x=slPos.getX(i), y=slPos.getY(i), z=slPos.getZ(i);
+          z += 0.03*Math.sin((y/slLen)*Math.PI);
+          slPos.setXYZ(i,x,y,z);
+        }
+        slGeo.computeVertexNormals();
+        const sl = new THREE.Mesh(slGeo, mat);
+        sl.position.set(side*(0.7+slW*0.5), 0.7+0.1-slLen/2, 0.02);
+        sl.rotation.z = side*0.18;
+        sl.castShadow=true;
+        garmentGroup.add(sl);
+      });
+    }
+
+    // HOOD (hoodie only)
+    if(S.garment==='hoodie'){
+      const hoodGeo = new THREE.SphereGeometry(0.52, 16, 12, 0, Math.PI*2, 0, Math.PI*0.65);
+      const hood = new THREE.Mesh(hoodGeo, mat);
+      hood.position.set(0, 0.95, -0.05);
+      hood.castShadow=true;
+      garmentGroup.add(hood);
+      // Hood inner
+      const hInnerGeo = new THREE.SphereGeometry(0.48, 16, 12, 0, Math.PI*2, 0, Math.PI*0.55);
+      const hInner = new THREE.Mesh(hInnerGeo, matBack);
+      hInner.position.set(0, 0.95, -0.05);
+      garmentGroup.add(hInner);
+    }
+
+    // NECK
+    const neckGeo = new THREE.TorusGeometry(0.18, 0.045, 8, 32);
+    const neck = new THREE.Mesh(neckGeo, new THREE.MeshStandardMaterial({color:hexToRgb(S.ribColor),roughness:0.9}));
+    neck.position.set(0, 0.92, 0.05);
+    neck.rotation.x = Math.PI/2;
+    garmentGroup.add(neck);
+
+    // RIB BOTTOM
+    const ribGeo = new THREE.CylinderGeometry(0.72, 0.7, 0.08, 20);
+    const rib = new THREE.Mesh(ribGeo, new THREE.MeshStandardMaterial({color:hexToRgb(S.ribColor),roughness:0.9}));
+    rib.position.set(0,-1.06,0);
+    garmentGroup.add(rib);
+
+    // CUFFS
+    if(slW>0 && S.garment!=='tshirt'){
+      const slLen = S.garment==='longsleeve'?1.35:1.0;
+      [-1,1].forEach(side=>{
+        const cuffGeo = new THREE.CylinderGeometry(slW*0.78, slW*0.75, 0.07, 12);
+        const cuff = new THREE.Mesh(cuffGeo, new THREE.MeshStandardMaterial({color:hexToRgb(S.ribColor),roughness:0.9}));
+        const slAngle = side*0.18;
+        const cx = side*(0.7+slW*0.5) + Math.sin(slAngle)*(-slLen*0.5);
+        const cy = 0.7+0.1-slLen + Math.cos(slAngle)*(-slLen*0.02);
+        cuff.position.set(cx, cy-0.02, 0.02);
+        cuff.rotation.z = slAngle;
+        garmentGroup.add(cuff);
+      });
+    }
+
+    // KANGAROO POCKET (hoodie)
+    if(S.garment==='hoodie'||S.garment==='crewneck'){
+      const pocketGeo = new THREE.BoxGeometry(0.72, 0.28, 0.04, 4,4,2);
+      const pocket = new THREE.Mesh(pocketGeo, new THREE.MeshStandardMaterial({
+        color:hexToRgb(shade(S.bodyColor,-18)), roughness:0.9
+      }));
+      pocket.position.set(0,-0.55,0.19);
+      garmentGroup.add(pocket);
+    }
+  }
+
+  // Subtle rotation for nice initial angle
+  garmentGroup.rotation.y = 0.3;
+}
+
+// ================================================================
+// DRAW 2D TEXTURE
+// ================================================================
+function drawTexture(){
+  const tw=TC.width, th=TC.height;
+  tc.clearRect(0,0,tw,th);
+
+  // Base color
+  tc.fillStyle = S.bodyColor;
+  tc.fillRect(0,0,tw,th);
+
+  // Simple fabric texture noise
+  if(S.shadingOn){
+    for(let i=0;i<3000;i++){
+      tc.fillStyle=`rgba(${Math.random()>0.5?255:0},${Math.random()>0.5?255:0},${Math.random()>0.5?255:0},0.008)`;
+      tc.fillRect(Math.random()*tw, Math.random()*th, 1, 1);
+    }
+    // Subtle gradient for depth
+    const g=tc.createRadialGradient(tw/2,th*0.3,0,tw/2,th*0.5,tw*0.7);
+    g.addColorStop(0,'rgba(255,255,255,0.06)');
+    g.addColorStop(0.5,'rgba(0,0,0,0)');
+    g.addColorStop(1,'rgba(0,0,0,0.12)');
+    tc.fillStyle=g; tc.fillRect(0,0,tw,th);
+  }
+
+  // Seam lines
+  if(S.seams){
+    tc.strokeStyle=shade(S.bodyColor,-22);
+    tc.lineWidth=3;
+    tc.setLineDash([8,6]);
+    // Center vertical
+    tc.beginPath();tc.moveTo(tw/2,th*0.08);tc.lineTo(tw/2,th*0.92);tc.stroke();
+    // Shoulder seams
+    tc.beginPath();tc.moveTo(tw*0.15,th*0.08);tc.lineTo(tw*0.35,th*0.28);tc.stroke();
+    tc.beginPath();tc.moveTo(tw*0.85,th*0.08);tc.lineTo(tw*0.65,th*0.28);tc.stroke();
+    tc.setLineDash([]);
+  }
+
+  // LOGO
+  if(S.logo){
+    tc.save();
+    tc.globalAlpha = S.logoOp;
+    const lw = (S.logoSize/100)*tw*0.5;
+    const lh = lw*(S.logo.height/S.logo.width);
+    const lx = (S.logoX/100)*tw;
+    const ly = (S.logoY/100)*th;
+    tc.translate(lx,ly);
+    tc.rotate(S.logoRot*Math.PI/180);
+    tc.scale(S.logoFlipH?-1:1, S.logoFlipV?-1:1);
+    tc.drawImage(S.logo,-lw/2,-lh/2,lw,lh);
+    tc.restore();
+  }
+
+  // TEXT
+  if(S.text){
+    tc.save();
+    tc.globalAlpha=1;
+    const fs=S.textSize*3;
+    tc.font=`${fs}px ${S.textFont}`;
+    tc.fillStyle=S.textColor;
+    tc.textAlign='center';
+    tc.textBaseline='middle';
+    const tx=tw/2, ty=(S.textY/100)*th;
+    if(S.textFx==='shadow'){tc.shadowColor='rgba(0,0,0,0.6)';tc.shadowBlur=12;tc.shadowOffsetX=4;tc.shadowOffsetY=4;}
+    else if(S.textFx==='outline'){tc.strokeStyle='rgba(0,0,0,0.8)';tc.lineWidth=8;tc.strokeText(S.text,tx,ty);}
+    else if(S.textFx==='glow'){tc.shadowColor=S.textColor;tc.shadowBlur=40;}
+    tc.fillText(S.text,tx,ty);
+    tc.shadowBlur=0;tc.shadowOffsetX=0;tc.shadowOffsetY=0;
+    if(S.textSub){
+      const sf=(S.textSize*2)*2.4;
+      tc.font=`${sf}px ${S.textFont}`;
+      tc.fillStyle='rgba(255,255,255,0.7)';
+      tc.fillText(S.textSub,tx,ty+fs*0.8);
+    }
+    tc.restore();
+  }
+
+  tex.needsUpdate=true;
+}
+
+function updateTexture(){
+  drawTexture();
+  // Update material colors
+  garmentGroup.children.forEach(m=>{
+    if(m.material&&m.material.map===tex) m.material.needsUpdate=true;
+  });
+}
+
+// ================================================================
+// ORBIT CONTROLS (manual)
+// ================================================================
+let mouse={down:false,x:0,y:0,button:0};
+let rotX=0.1, rotY=0.3, panX=0, panY=0, zoom=3.8;
+const TARGET = new THREE.Vector3(0, 0, 0);
+
+cnv.addEventListener('mousedown',e=>{mouse.down=true;mouse.x=e.clientX;mouse.y=e.clientY;mouse.button=e.button;});
+cnv.addEventListener('contextmenu',e=>e.preventDefault());
+window.addEventListener('mouseup',()=>mouse.down=false);
+window.addEventListener('mousemove',e=>{
+  if(!mouse.down)return;
+  const dx=(e.clientX-mouse.x)*0.008;
+  const dy=(e.clientY-mouse.y)*0.008;
+  mouse.x=e.clientX; mouse.y=e.clientY;
+  if(mouse.button===0){rotY+=dx; rotX=Math.max(-1.2,Math.min(1.2,rotX+dy));}
+  else{panX+=dx*0.3; panY-=dy*0.3;}
+  updateCamera();
+});
+cnv.addEventListener('wheel',e=>{
+  zoom=Math.max(1.5,Math.min(8,zoom+e.deltaY*0.006));
+  updateCamera();
+},{passive:true});
+
+function updateCamera(){
+  camera.position.x=panX+zoom*Math.sin(rotY)*Math.cos(rotX);
+  camera.position.y=panY+zoom*Math.sin(rotX)+0.5;
+  camera.position.z=zoom*Math.cos(rotY)*Math.cos(rotX);
+  camera.lookAt(panX,panY+0.2,0);
+  document.getElementById('ctrlInfo').textContent=rotY>-0.5&&rotY<0.5?'FRENTE':rotY>1.5||rotY<-1.5?'ESPALDA':'LATERAL';
+}
+
+function resetCamera(){rotX=0.1;rotY=0.3;panX=0;panY=0;zoom=3.8;updateCamera();}
+
+function setViewAngle(v){
+  if(v==='front'){rotY=0.0;rotX=0.08;}
+  else if(v==='back'){rotY=Math.PI;rotX=0.08;}
+  else if(v==='side'){rotY=Math.PI/2;rotX=0.08;}
+  updateCamera();
+}
+
+// Auto rotate
+let autoRotateOn=false;
+function setAutoRotate(on,el){
+  autoRotateOn=on;
+  document.querySelectorAll('#p-garment .chip').forEach(c=>c.classList.remove('active'));
+  el.classList.add('active');
+}
+
+// ================================================================
+// ANIMATE
+// ================================================================
+function animate(){
+  requestAnimationFrame(animate);
+  if(autoRotateOn){ rotY+=0.005; updateCamera(); }
+  renderer.render(scene,camera);
+}
+
+// ================================================================
+// UI FUNCTIONS
+// ================================================================
+const PANELS=['garment','color','logo','text'];
+function setPanel(name,btn){
+  PANELS.forEach(p=>{
+    document.getElementById('p-'+p).style.display=p===name?'block':'none';
+  });
+  document.querySelectorAll('.sidebar-btn').forEach(b=>b.classList.remove('active'));
+  if(btn)btn.classList.add('active');
+  const titles={garment:'Tipo de prenda',color:'Color y paletas',logo:'Logo e imagen',text:'Texto y tipografía'};
+  document.getElementById('panelTitle').textContent=titles[name]||name;
+}
+
+function setGarment(g,el){
+  S.garment=g;
+  document.querySelectorAll('.g-pill').forEach(x=>x.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('ri-garment').textContent=g.toUpperCase();
+  buildGarment();
+  updateTexture();
+}
+
+// COLORS
+const SWATCHES=[
+  {c:'#1a1a1a',light:false},{c:'#2c2c2c',light:false},{c:'#555',light:false},{c:'#888',light:false},
+  {c:'#f5f5f5',light:true},{c:'#fffbe6',light:true},{c:'#fde8e0',light:true},
+  {c:'#8b1a1a',light:false},{c:'#c0392b',light:false},{c:'#e74c3c',light:false},
+  {c:'#1a2744',light:false},{c:'#2980b9',light:false},{c:'#3498db',light:false},
+  {c:'#1a3a1a',light:false},{c:'#27ae60',light:false},{c:'#2ecc71',light:false},
+  {c:'#4a1a4a',light:false},{c:'#8e44ad',light:false},{c:'#c8b89a',light:true},
+  {c:'#d4af37',light:true},{c:'#e67e22',light:false},{c:'#f39c12',light:true},
+];
+const sg=document.getElementById('swatchGrid');
+SWATCHES.forEach(({c,light})=>{
+  const s=document.createElement('div');
+  s.className='swatch'+(c==='#1a1a1a'?' active':'')+(light?' light':'');
+  s.style.background=c;
+  if(light)s.style.border='1px solid #ccc';
+  s.onclick=()=>{
+    document.querySelectorAll('.swatch').forEach(x=>x.classList.remove('active'));
+    s.classList.add('active');
+    S.bodyColor=c; S.sleeveColor=shade(c,-15); S.ribColor=shade(c,-35);
+    document.getElementById('customColor').value=c;
+    document.getElementById('sleeveColor').value=S.sleeveColor;
+    document.getElementById('ribColor').value=S.ribColor;
+    updateMeshColors(); updateTexture(); updateInfo();
+  };
+  sg.appendChild(s);
+});
+
+const PRESETS=[
+  {name:'Midnight Black',colors:['#1a1a1a','#141414','#0d0d0d']},
+  {name:'Pure White',colors:['#f5f5f5','#e8e8e8','#d0d0d0']},
+  {name:'Navy Blue',colors:['#1a2744','#152038','#0e1525']},
+  {name:'Forest Green',colors:['#1a3a1a','#142e14','#0e200e']},
+  {name:'Crimson Red',colors:['#8b1a1a','#711414','#550e0e']},
+  {name:'Sand Beige',colors:['#c8b89a','#b5a487','#9e8e70']},
+  {name:'Raglan Classic',colors:['#f5f5f5','#1a1a1a','#0d0d0d']},
+  {name:'Dusty Rose',colors:['#c9a0a0','#b58888','#9e7070']},
+  {name:'Sky Blue',colors:['#a8cce0','#8cb8d0','#70a4c0']},
+  {name:'Olive',colors:['#5c5a2e','#4a4824','#38361a']},
+];
+const pl=document.getElementById('presetList');
+PRESETS.forEach(p=>{
+  const d=document.createElement('div');
+  d.className='preset';
+  d.innerHTML=`<div class="preset-dots">${p.colors.slice(0,3).map(c=>`<div class="preset-dot" style="background:${c};border:1px solid rgba(0,0,0,.1)"></div>`).join('')}</div><span class="preset-name">${p.name}</span>`;
+  d.onclick=()=>{
+    S.bodyColor=p.colors[0]; S.sleeveColor=p.colors[1]; S.ribColor=p.colors[2];
+    document.getElementById('customColor').value=S.bodyColor;
+    document.getElementById('sleeveColor').value=S.sleeveColor;
+    document.getElementById('ribColor').value=S.ribColor;
+    document.querySelectorAll('.preset').forEach(x=>x.classList.remove('active'));
+    d.classList.add('active');
+    updateMeshColors(); updateTexture(); updateInfo();
+  };
+  pl.appendChild(d);
+});
+
+function applyColor(part,val){
+  if(part==='body') S.bodyColor=val;
+  else if(part==='sleeve') S.sleeveColor=val;
+  else if(part==='rib') S.ribColor=val;
+  updateMeshColors(); updateTexture(); updateInfo();
+}
+
+function updateMeshColors(){
+  // Update rib/cuff/pocket colors live
+  buildGarment();
+}
+
+function updLogo(prop,val){
+  const labels={size:'vSize',x:'vX',y:'vY',rot:'vRot',op:'vOp'};
+  const suffix={size:'%',x:'%',y:'%',rot:'°',op:'%'};
+  if(labels[prop]) document.getElementById(labels[prop]).textContent=val+suffix[prop];
+  if(prop==='size')S.logoSize=+val;
+  else if(prop==='x')S.logoX=+val;
+  else if(prop==='y')S.logoY=+val;
+  else if(prop==='rot')S.logoRot=+val;
+  else if(prop==='op')S.logoOp=val/100;
+  drawTexture(); tex.needsUpdate=true;
+}
+
+function loadLogo(e){
+  const f=e.target.files[0]; if(!f)return;
+  const r=new FileReader();
+  r.onload=ev=>{
+    const img=new Image();
+    img.onload=()=>{
+      S.logo=img;
+      document.getElementById('logoOpts').style.display='block';
+      document.getElementById('ri-logo').textContent=f.name.slice(0,12);
+      drawTexture(); tex.needsUpdate=true;
+      showToast('Logo cargado ✓');
+    };
+    img.src=ev.target.result;
+  };
+  r.readAsDataURL(f);
+}
+
+function flipLogo(d){if(d==='h')S.logoFlipH=!S.logoFlipH;else S.logoFlipV=!S.logoFlipV;drawTexture();tex.needsUpdate=true;}
+function centerLogo(){S.logoX=50;S.logoY=40;drawTexture();tex.needsUpdate=true;}
+function removeLogo(){S.logo=null;document.getElementById('logoOpts').style.display='none';document.getElementById('ri-logo').textContent='—';drawTexture();tex.needsUpdate=true;}
+
+function updText(prop,val,el){
+  if(prop==='main'){S.text=val;document.getElementById('ri-text').textContent=val||'—';}
+  else if(prop==='sub')S.textSub=val;
+  else if(prop==='font')S.textFont=val;
+  else if(prop==='size')S.textSize=+val;
+  else if(prop==='y')S.textY=+val;
+  else if(prop==='color')S.textColor=val;
+  else if(prop==='fx'){S.textFx=val;if(el){document.querySelectorAll('#p-text .chip').forEach(c=>c.classList.remove('active'));el.classList.add('active');}}
+  drawTexture(); tex.needsUpdate=true;
+}
+
+function toggleBg(on){
+  S.transp=on;
+  scene.background=on?null:new THREE.Color(0xf0efe9);
+}
+
+function updateInfo(){
+  document.getElementById('ri-color').textContent=S.bodyColor;
+}
+
+// EXPORT
+function exportPNG(){
+  // Render clean frame
+  renderer.render(scene,camera);
+  const link=document.createElement('a');
+  link.download='threadcraft-3d.png';
+  link.href=cnv.toDataURL('image/png');
+  link.click();
+  showToast('PNG exportado sin marca de agua ✓');
+}
+function exportJPG(){
+  renderer.render(scene,camera);
+  const link=document.createElement('a');
+  link.download='threadcraft-3d.jpg';
+  link.href=cnv.toDataURL('image/jpeg',0.95);
+  link.click();
+  showToast('JPG exportado ✓');
+}
+function saveDesign(){
+  try{localStorage.setItem('tc_design',JSON.stringify({garment:S.garment,bodyColor:S.bodyColor,text:S.text}));}catch(e){}
+  showToast('Diseño guardado ✓');
+}
+
+function showToast(msg){
+  const t=document.getElementById('toast');
+  t.textContent=msg;
+  t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),2800);
+}
+
+// RESIZE
+window.addEventListener('resize',()=>{
+  W=vp.clientWidth; H=vp.clientHeight-56;
+  renderer.setSize(W,H);
+  camera.aspect=W/H;
+  camera.updateProjectionMatrix();
+});
+
+// ================================================================
+// INIT
+// ================================================================
+buildGarment();
+drawTexture();
+updateCamera();
+animate();
+document.getElementById('loading').style.display='none';
+</script>
+</body>
+</html>
