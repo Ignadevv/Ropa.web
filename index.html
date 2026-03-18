@@ -1,0 +1,982 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>THREADCRAFT — Diseñador de Ropa Pro</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:wght@400;500&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+:root{
+  --bg:#080808;--surface:#101010;--surface2:#161616;--surface3:#1e1e1e;
+  --border:#252525;--border2:#333;
+  --accent:#e8ff00;--accent2:#ff3c00;--accent3:#00d4ff;
+  --text:#f0f0f0;--muted:#555;--muted2:#777;
+  --radius:8px;--radius2:12px;
+}
+html,body{height:100%;overflow:hidden;}
+body{background:var(--bg);color:var(--text);font-family:'DM Mono',monospace;display:flex;flex-direction:column;}
+
+/* TOP BAR */
+.topbar{height:52px;background:var(--surface);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 20px;flex-shrink:0;}
+.logo{font-family:'Bebas Neue';font-size:26px;letter-spacing:4px;color:var(--accent);}
+.logo span{color:var(--muted2);}
+.topbar-center{display:flex;gap:4px;}
+.tab{padding:6px 14px;border:1px solid transparent;border-radius:var(--radius);font-size:11px;cursor:pointer;background:none;color:var(--muted2);font-family:'DM Mono',monospace;letter-spacing:1px;transition:all .15s;}
+.tab.active,.tab:hover{background:var(--surface3);color:var(--text);border-color:var(--border2);}
+.tab.active{border-color:var(--accent);color:var(--accent);}
+.topbar-right{display:flex;gap:8px;align-items:center;}
+.btn-export{padding:8px 18px;background:var(--accent);color:#000;border:none;border-radius:var(--radius);font-family:'Bebas Neue';font-size:16px;letter-spacing:2px;cursor:pointer;transition:all .15s;}
+.btn-export:hover{background:#fff;}
+.btn-save{padding:8px 14px;background:none;border:1px solid var(--border2);color:var(--text);border-radius:var(--radius);font-size:11px;cursor:pointer;font-family:'DM Mono',monospace;transition:all .15s;}
+.btn-save:hover{border-color:var(--accent);color:var(--accent);}
+
+/* MAIN LAYOUT */
+.main{flex:1;display:flex;overflow:hidden;}
+
+/* LEFT PANEL */
+.left{width:260px;min-width:260px;background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden;}
+.left-tabs{display:flex;border-bottom:1px solid var(--border);}
+.ltab{flex:1;padding:10px 4px;text-align:center;font-size:9px;letter-spacing:1px;cursor:pointer;color:var(--muted);border-bottom:2px solid transparent;transition:all .15s;text-transform:uppercase;}
+.ltab.active{color:var(--accent);border-bottom-color:var(--accent);}
+.ltab:hover:not(.active){color:var(--text);}
+.left-content{flex:1;overflow-y:auto;padding:14px;}
+.left-content::-webkit-scrollbar{width:3px;}
+.left-content::-webkit-scrollbar-thumb{background:#333;}
+
+/* SECTIONS */
+.sec{margin-bottom:18px;}
+.sec-title{font-size:9px;letter-spacing:2px;color:var(--muted);text-transform:uppercase;margin-bottom:10px;display:flex;align-items:center;gap:6px;}
+.sec-title::after{content:'';flex:1;height:1px;background:var(--border);}
+
+/* GARMENT GRID */
+.garment-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:6px;}
+.garment-item{border:1px solid var(--border);border-radius:var(--radius);padding:10px 8px;cursor:pointer;transition:all .15s;text-align:center;background:var(--surface2);}
+.garment-item:hover{border-color:var(--border2);}
+.garment-item.active{border-color:var(--accent);background:#1a1a00;}
+.garment-icon{font-size:28px;margin-bottom:4px;display:block;}
+.garment-name{font-size:9px;letter-spacing:1px;color:var(--muted2);}
+.garment-item.active .garment-name{color:var(--accent);}
+
+/* COLOR PALETTE */
+.palette{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:10px;}
+.c-swatch{width:28px;height:28px;border-radius:50%;border:2px solid transparent;cursor:pointer;transition:all .15s;position:relative;}
+.c-swatch.active::after{content:'✓';position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:12px;color:#fff;text-shadow:0 0 3px #000;}
+.c-swatch:hover{transform:scale(1.15);}
+.c-swatch.active{border-color:var(--accent);}
+.color-row{display:flex;align-items:center;gap:8px;margin-bottom:8px;}
+.color-row label{font-size:10px;color:var(--muted);flex:1;}
+.color-row input[type=color]{width:32px;height:32px;border:1px solid var(--border2);background:none;border-radius:var(--radius);cursor:pointer;}
+
+/* SLIDERS */
+.slider-group{display:flex;flex-direction:column;gap:10px;}
+.sl-row{display:flex;flex-direction:column;gap:4px;}
+.sl-label{display:flex;justify-content:space-between;font-size:10px;color:var(--muted);}
+.sl-label span{color:var(--text);}
+input[type=range]{width:100%;height:3px;accent-color:var(--accent);cursor:pointer;}
+
+/* UPLOAD */
+.upload-area{border:1px dashed var(--border2);border-radius:var(--radius2);padding:18px;text-align:center;cursor:pointer;position:relative;transition:all .2s;background:var(--surface2);}
+.upload-area:hover{border-color:var(--accent);background:#0f0f00;}
+.upload-area input{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%;}
+.upload-area .u-icon{font-size:28px;margin-bottom:8px;}
+.upload-area p{font-size:10px;color:var(--muted);line-height:1.6;}
+.upload-area strong{color:var(--accent);font-size:11px;}
+
+/* TEXT OPTIONS */
+.text-opts{display:flex;flex-direction:column;gap:8px;}
+.t-input{width:100%;background:var(--surface3);border:1px solid var(--border2);color:var(--text);padding:8px 10px;border-radius:var(--radius);font-size:12px;font-family:'DM Mono',monospace;}
+.t-input:focus{outline:none;border-color:var(--accent);}
+.t-select{width:100%;background:var(--surface3);border:1px solid var(--border2);color:var(--text);padding:8px 10px;border-radius:var(--radius);font-size:11px;font-family:'DM Mono',monospace;}
+.align-btns{display:flex;gap:4px;}
+.align-btn{flex:1;padding:6px;border:1px solid var(--border2);background:none;color:var(--muted);border-radius:var(--radius);cursor:pointer;font-size:14px;transition:all .15s;}
+.align-btn.active,.align-btn:hover{background:var(--surface3);color:var(--text);border-color:var(--accent);}
+
+/* EFFECTS */
+.fx-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:6px;}
+.fx-item{padding:8px;border:1px solid var(--border);background:var(--surface2);border-radius:var(--radius);cursor:pointer;font-size:10px;color:var(--muted);text-align:center;transition:all .15s;}
+.fx-item:hover{border-color:var(--border2);color:var(--text);}
+.fx-item.active{border-color:var(--accent);color:var(--accent);background:#0f0f00;}
+
+/* LAYERS */
+.layer-list{display:flex;flex-direction:column;gap:4px;}
+.layer-item{display:flex;align-items:center;gap:8px;padding:7px 8px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);cursor:pointer;transition:all .15s;}
+.layer-item:hover{border-color:var(--border2);}
+.layer-item.active{border-color:var(--accent);}
+.layer-vis{width:14px;height:14px;border:1px solid var(--border2);border-radius:3px;cursor:pointer;flex-shrink:0;}
+.layer-vis.on{background:var(--accent);}
+.layer-name{flex:1;font-size:10px;color:var(--muted2);}
+.layer-item.active .layer-name{color:var(--text);}
+.layer-del{color:var(--muted);font-size:12px;cursor:pointer;}
+.layer-del:hover{color:var(--accent2);}
+
+/* CANVAS AREA */
+.canvas-area{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;position:relative;background:var(--bg);overflow:hidden;}
+.canvas-area::before{content:'';position:absolute;inset:0;background-image:radial-gradient(circle at 1px 1px, #1a1a1a 1px, transparent 0);background-size:24px 24px;opacity:.4;}
+.canvas-wrap{position:relative;z-index:1;}
+canvas{border-radius:var(--radius2);box-shadow:0 0 80px rgba(0,0,0,.8);}
+.canvas-info{position:absolute;bottom:16px;left:50%;transform:translateX(-50%);font-size:9px;color:var(--muted);letter-spacing:1px;background:rgba(0,0,0,.7);padding:5px 14px;border-radius:20px;border:1px solid var(--border);white-space:nowrap;}
+
+/* ZOOM CONTROLS */
+.zoom-bar{position:absolute;bottom:16px;right:20px;display:flex;gap:4px;z-index:10;}
+.zoom-btn{width:28px;height:28px;border:1px solid var(--border2);background:var(--surface);color:var(--text);border-radius:var(--radius);cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center;transition:all .15s;}
+.zoom-btn:hover{border-color:var(--accent);color:var(--accent);}
+.zoom-val{padding:0 10px;height:28px;border:1px solid var(--border2);background:var(--surface);color:var(--muted);border-radius:var(--radius);font-size:10px;display:flex;align-items:center;font-family:'DM Mono',monospace;}
+
+/* VIEW SWITCHER */
+.view-bar{position:absolute;top:16px;left:50%;transform:translateX(-50%);display:flex;gap:4px;z-index:10;background:rgba(8,8,8,.8);padding:4px;border-radius:var(--radius2);border:1px solid var(--border);}
+.view-btn{padding:5px 12px;border:none;background:none;color:var(--muted);font-size:9px;border-radius:var(--radius);cursor:pointer;font-family:'DM Mono',monospace;letter-spacing:1px;transition:all .15s;}
+.view-btn.active{background:var(--surface3);color:var(--accent);}
+.view-btn:hover:not(.active){color:var(--text);}
+
+/* RIGHT PANEL */
+.right{width:220px;min-width:220px;background:var(--surface);border-left:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden;}
+.right-header{padding:12px 14px;border-bottom:1px solid var(--border);font-size:9px;letter-spacing:2px;color:var(--muted);text-transform:uppercase;}
+.right-content{flex:1;overflow-y:auto;padding:12px 14px;}
+.right-content::-webkit-scrollbar{width:3px;}
+.right-content::-webkit-scrollbar-thumb{background:#333;}
+
+/* PREVIEW THUMBNAILS */
+.thumbs{display:flex;flex-direction:column;gap:6px;margin-bottom:16px;}
+.thumb{border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;cursor:pointer;transition:all .15s;position:relative;}
+.thumb canvas{display:block;width:100%;}
+.thumb:hover{border-color:var(--border2);}
+.thumb.active{border-color:var(--accent);}
+.thumb-label{position:absolute;bottom:0;left:0;right:0;padding:3px 6px;background:rgba(0,0,0,.7);font-size:8px;color:var(--muted2);text-align:center;}
+
+/* INFO BOX */
+.info-card{background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius2);padding:12px;margin-bottom:12px;}
+.info-row{display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid var(--border);font-size:10px;}
+.info-row:last-child{border-bottom:none;}
+.info-row .key{color:var(--muted);}
+.info-row .val{color:var(--text);}
+
+/* TEMPLATES */
+.template-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:6px;}
+.tmpl{border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;cursor:pointer;transition:all .15s;background:var(--surface2);}
+.tmpl:hover{border-color:var(--border2);}
+.tmpl.active{border-color:var(--accent);}
+.tmpl-preview{height:70px;display:flex;align-items:center;justify-content:center;font-size:28px;}
+.tmpl-name{padding:5px;text-align:center;font-size:9px;color:var(--muted2);border-top:1px solid var(--border);}
+
+/* UTILS */
+.row{display:flex;gap:6px;}
+.row .btn-sm{flex:1;padding:7px;border:1px solid var(--border2);background:none;color:var(--muted2);font-family:'DM Mono',monospace;font-size:9px;border-radius:var(--radius);cursor:pointer;letter-spacing:1px;transition:all .15s;}
+.row .btn-sm:hover{border-color:var(--text);color:var(--text);}
+.row .btn-sm.danger:hover{border-color:var(--accent2);color:var(--accent2);}
+.toggle-row{display:flex;align-items:center;justify-content:space-between;padding:6px 0;}
+.toggle-row label{font-size:10px;color:var(--muted2);}
+.toggle{width:32px;height:17px;background:var(--border2);border-radius:10px;cursor:pointer;position:relative;transition:background .2s;}
+.toggle.on{background:var(--accent);}
+.toggle::after{content:'';position:absolute;width:13px;height:13px;background:#fff;border-radius:50%;top:2px;left:2px;transition:left .2s;}
+.toggle.on::after{left:17px;}
+
+/* TOAST */
+.toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%) translateY(60px);background:var(--accent);color:#000;padding:10px 20px;border-radius:var(--radius2);font-size:11px;font-weight:700;letter-spacing:1px;transition:transform .3s;z-index:999;}
+.toast.show{transform:translateX(-50%) translateY(0);}
+</style>
+</head>
+<body>
+
+<!-- TOP BAR -->
+<div class="topbar">
+  <div class="logo">THREAD<span>CRAFT</span></div>
+  <div class="topbar-center">
+    <button class="tab active" onclick="setMode('design')">DISEÑO</button>
+    <button class="tab" onclick="setMode('templates')">PLANTILLAS</button>
+    <button class="tab" onclick="setMode('layers')">CAPAS</button>
+    <button class="tab" onclick="setMode('effects')">EFECTOS</button>
+  </div>
+  <div class="topbar-right">
+    <button class="btn-save" onclick="saveDesign()">GUARDAR</button>
+    <button class="btn-export" onclick="exportPNG()">EXPORTAR PNG</button>
+  </div>
+</div>
+
+<!-- MAIN -->
+<div class="main">
+
+<!-- LEFT PANEL -->
+<div class="left">
+  <div class="left-tabs">
+    <div class="ltab active" onclick="setLTab(0,this)">PRENDA</div>
+    <div class="ltab" onclick="setLTab(1,this)">LOGO</div>
+    <div class="ltab" onclick="setLTab(2,this)">TEXTO</div>
+    <div class="ltab" onclick="setLTab(3,this)">COLOR</div>
+  </div>
+
+  <!-- TAB 0: PRENDA -->
+  <div class="left-content" id="ltab0">
+    <div class="sec">
+      <div class="sec-title">Tipo de prenda</div>
+      <div class="garment-grid">
+        <div class="garment-item active" onclick="setGarment('hoodie',this)">
+          <span class="garment-icon">🧥</span>
+          <div class="garment-name">HOODIE</div>
+        </div>
+        <div class="garment-item" onclick="setGarment('tshirt',this)">
+          <span class="garment-icon">👕</span>
+          <div class="garment-name">POLERA</div>
+        </div>
+        <div class="garment-item" onclick="setGarment('longsleeve',this)">
+          <span class="garment-icon">👔</span>
+          <div class="garment-name">MANGA LARGA</div>
+        </div>
+        <div class="garment-item" onclick="setGarment('raglan',this)">
+          <span class="garment-icon">⚾</span>
+          <div class="garment-name">RAGLAN</div>
+        </div>
+        <div class="garment-item" onclick="setGarment('tanktop',this)">
+          <span class="garment-icon">🎽</span>
+          <div class="garment-name">CAMISETA</div>
+        </div>
+        <div class="garment-item" onclick="setGarment('crewneck',this)">
+          <span class="garment-icon">🧶</span>
+          <div class="garment-name">CREWNECK</div>
+        </div>
+      </div>
+    </div>
+    <div class="sec">
+      <div class="sec-title">Talla de referencia</div>
+      <div style="display:flex;gap:4px;flex-wrap:wrap;">
+        <button class="align-btn active" onclick="setSize('XS',this)" style="font-size:10px;">XS</button>
+        <button class="align-btn" onclick="setSize('S',this)" style="font-size:10px;">S</button>
+        <button class="align-btn" onclick="setSize('M',this)" style="font-size:10px;">M</button>
+        <button class="align-btn" onclick="setSize('L',this)" style="font-size:10px;">L</button>
+        <button class="align-btn" onclick="setSize('XL',this)" style="font-size:10px;">XL</button>
+        <button class="align-btn" onclick="setSize('2XL',this)" style="font-size:10px;">2XL</button>
+      </div>
+    </div>
+    <div class="sec">
+      <div class="sec-title">Opciones</div>
+      <div class="toggle-row">
+        <label>Mostrar costuras</label>
+        <div class="toggle on" id="toggleSeams" onclick="toggleOpt('seams',this)"></div>
+      </div>
+      <div class="toggle-row">
+        <label>Mostrar sombras</label>
+        <div class="toggle on" id="toggleShadows" onclick="toggleOpt('shadows',this)"></div>
+      </div>
+      <div class="toggle-row">
+        <label>Fondo transparente</label>
+        <div class="toggle" id="toggleTransp" onclick="toggleOpt('transp',this)"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB 1: LOGO -->
+  <div class="left-content" id="ltab1" style="display:none;">
+    <div class="sec">
+      <div class="sec-title">Subir imagen</div>
+      <div class="upload-area">
+        <input type="file" id="logoInput" accept="image/*" onchange="loadLogo(event)">
+        <div class="u-icon">⬆</div>
+        <strong>Subir logo o imagen</strong>
+        <p>PNG, JPG, SVG, WEBP<br>Recomendado: PNG sin fondo</p>
+      </div>
+    </div>
+    <div class="sec" id="logoOpts" style="display:none;">
+      <div class="sec-title">Ajustes del logo</div>
+      <div class="slider-group">
+        <div class="sl-row">
+          <div class="sl-label">Tamaño <span id="vLogoSize">50%</span></div>
+          <input type="range" min="5" max="100" value="50" oninput="updLogo('size',this.value)">
+        </div>
+        <div class="sl-row">
+          <div class="sl-label">Posición X <span id="vLogoX">50%</span></div>
+          <input type="range" min="5" max="95" value="50" oninput="updLogo('x',this.value)">
+        </div>
+        <div class="sl-row">
+          <div class="sl-label">Posición Y <span id="vLogoY">42%</span></div>
+          <input type="range" min="5" max="95" value="42" oninput="updLogo('y',this.value)">
+        </div>
+        <div class="sl-row">
+          <div class="sl-label">Rotación <span id="vLogoRot">0°</span></div>
+          <input type="range" min="-180" max="180" value="0" oninput="updLogo('rot',this.value)">
+        </div>
+        <div class="sl-row">
+          <div class="sl-label">Opacidad <span id="vLogoOp">100%</span></div>
+          <input type="range" min="10" max="100" value="100" oninput="updLogo('op',this.value)">
+        </div>
+      </div>
+      <div style="margin-top:10px;" class="row">
+        <button class="btn-sm" onclick="flipLogo('h')">VOLTEAR H</button>
+        <button class="btn-sm" onclick="flipLogo('v')">VOLTEAR V</button>
+      </div>
+      <div class="row" style="margin-top:6px;">
+        <button class="btn-sm" onclick="centerLogo()">CENTRAR</button>
+        <button class="btn-sm danger" onclick="removeLogo()">QUITAR</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB 2: TEXTO -->
+  <div class="left-content" id="ltab2" style="display:none;">
+    <div class="sec">
+      <div class="sec-title">Contenido</div>
+      <div class="text-opts">
+        <input class="t-input" id="textMain" placeholder="Texto principal..." oninput="updText('main',this.value)" maxlength="40">
+        <input class="t-input" id="textSub" placeholder="Subtexto..." oninput="updText('sub',this.value)" maxlength="40">
+      </div>
+    </div>
+    <div class="sec">
+      <div class="sec-title">Tipografia</div>
+      <select class="t-select" id="fontMain" onchange="updText('font',this.value)">
+        <option value="'Bebas Neue'">Bebas Neue</option>
+        <option value="Impact">Impact</option>
+        <option value="Georgia">Georgia</option>
+        <option value="'Playfair Display'">Playfair Display</option>
+        <option value="'DM Mono'">DM Mono</option>
+        <option value="'Courier New'">Courier New</option>
+        <option value="Verdana">Verdana</option>
+        <option value="Tahoma">Tahoma</option>
+      </select>
+      <div class="slider-group" style="margin-top:8px;">
+        <div class="sl-row">
+          <div class="sl-label">Tamaño principal <span id="vTSize">32</span>px</div>
+          <input type="range" min="10" max="80" value="32" oninput="updText('size',this.value)">
+        </div>
+        <div class="sl-row">
+          <div class="sl-label">Tamaño subtexto <span id="vTSubSize">18</span>px</div>
+          <input type="range" min="8" max="50" value="18" oninput="updText('subsize',this.value)">
+        </div>
+        <div class="sl-row">
+          <div class="sl-label">Espaciado letras <span id="vTLetter">0</span>px</div>
+          <input type="range" min="-5" max="20" value="0" oninput="updText('letter',this.value)">
+        </div>
+        <div class="sl-row">
+          <div class="sl-label">Posición Y <span id="vTY">65</span>%</div>
+          <input type="range" min="10" max="90" value="65" oninput="updText('y',this.value)">
+        </div>
+      </div>
+    </div>
+    <div class="sec">
+      <div class="sec-title">Alineación</div>
+      <div class="align-btns">
+        <button class="align-btn active" onclick="setAlign('left',this)">⬅</button>
+        <button class="align-btn" onclick="setAlign('center',this)">⬛</button>
+        <button class="align-btn" onclick="setAlign('right',this)">➡</button>
+      </div>
+    </div>
+    <div class="sec">
+      <div class="sec-title">Colores</div>
+      <div class="color-row">
+        <label>Color principal</label>
+        <input type="color" id="textColorMain" value="#ffffff" oninput="updText('color',this.value)">
+      </div>
+      <div class="color-row">
+        <label>Color subtexto</label>
+        <input type="color" id="textColorSub" value="#cccccc" oninput="updText('subcolor',this.value)">
+      </div>
+    </div>
+    <div class="sec">
+      <div class="sec-title">Efectos de texto</div>
+      <div class="fx-grid">
+        <div class="fx-item" onclick="setTextFx('none',this)">Normal</div>
+        <div class="fx-item active" onclick="setTextFx('shadow',this)">Sombra</div>
+        <div class="fx-item" onclick="setTextFx('outline',this)">Contorno</div>
+        <div class="fx-item" onclick="setTextFx('glow',this)">Glow</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB 3: COLOR -->
+  <div class="left-content" id="ltab3" style="display:none;">
+    <div class="sec">
+      <div class="sec-title">Colores predefinidos</div>
+      <div class="palette" id="mainPalette"></div>
+    </div>
+    <div class="sec">
+      <div class="sec-title">Color personalizado</div>
+      <div class="color-row">
+        <label>Color de prenda</label>
+        <input type="color" id="garmentColor" value="#1a1a1a" oninput="setGarmentColor(this.value)">
+      </div>
+      <div class="color-row">
+        <label>Color mangas</label>
+        <input type="color" id="sleeveColor" value="#141414" oninput="setSleeveColor(this.value)">
+      </div>
+      <div class="color-row">
+        <label>Color ribetes</label>
+        <input type="color" id="ribColor" value="#0d0d0d" oninput="setRibColor(this.value)">
+      </div>
+    </div>
+    <div class="sec">
+      <div class="sec-title">Paletas prediseñadas</div>
+      <div style="display:flex;flex-direction:column;gap:5px;">
+        <div class="fx-item" onclick="applyPalette('midnight')" style="text-align:left;padding:8px 10px;">⬛ Midnight Black</div>
+        <div class="fx-item" onclick="applyPalette('snow')" style="text-align:left;padding:8px 10px;">⬜ Snow White</div>
+        <div class="fx-item" onclick="applyPalette('navy')" style="text-align:left;padding:8px 10px;">🟦 Navy Blue</div>
+        <div class="fx-item" onclick="applyPalette('forest')" style="text-align:left;padding:8px 10px;">🟩 Forest Green</div>
+        <div class="fx-item" onclick="applyPalette('crimson')" style="text-align:left;padding:8px 10px;">🟥 Crimson Red</div>
+        <div class="fx-item" onclick="applyPalette('sand')" style="text-align:left;padding:8px 10px;">🟫 Sand Beige</div>
+        <div class="fx-item" onclick="applyPalette('raglan')" style="text-align:left;padding:8px 10px;">⚾ Raglan Classic</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- CANVAS CENTER -->
+<div class="canvas-area">
+  <div class="view-bar">
+    <button class="view-btn active" onclick="setView('front',this)">FRENTE</button>
+    <button class="view-btn" onclick="setView('back',this)">ESPALDA</button>
+    <button class="view-btn" onclick="setView('left',this)">MANGA IZQ</button>
+    <button class="view-btn" onclick="setView('right',this)">MANGA DER</button>
+  </div>
+  <div class="canvas-wrap">
+    <canvas id="mc" width="560" height="560"></canvas>
+  </div>
+  <div class="canvas-info" id="cinfo">ARRASTRA logo · SCROLL para zoom · Click para seleccionar</div>
+  <div class="zoom-bar">
+    <button class="zoom-btn" onclick="zoom(-10)">−</button>
+    <div class="zoom-val" id="zoomVal">100%</div>
+    <button class="zoom-btn" onclick="zoom(10)">+</button>
+    <button class="zoom-btn" onclick="zoom(0)" title="Reset">⟳</button>
+  </div>
+</div>
+
+<!-- RIGHT PANEL -->
+<div class="right">
+  <div class="right-header">Vistas previas</div>
+  <div class="right-content">
+    <div class="thumbs">
+      <div class="thumb active" onclick="setView('front',null)">
+        <canvas id="th0" width="192" height="120"></canvas>
+        <div class="thumb-label">FRENTE</div>
+      </div>
+      <div class="thumb" onclick="setView('back',null)">
+        <canvas id="th1" width="192" height="120"></canvas>
+        <div class="thumb-label">ESPALDA</div>
+      </div>
+      <div class="thumb" onclick="setView('left',null)">
+        <canvas id="th2" width="192" height="120"></canvas>
+        <div class="thumb-label">MANGA IZQ</div>
+      </div>
+    </div>
+
+    <div class="sec">
+      <div class="sec-title">Detalles</div>
+      <div class="info-card">
+        <div class="info-row"><span class="key">Prenda</span><span class="val" id="iGarment">HOODIE</span></div>
+        <div class="info-row"><span class="key">Color</span><span class="val" id="iColor">#1a1a1a</span></div>
+        <div class="info-row"><span class="key">Logo</span><span class="val" id="iLogo">—</span></div>
+        <div class="info-row"><span class="key">Texto</span><span class="val" id="iText">—</span></div>
+        <div class="info-row"><span class="key">Vista</span><span class="val" id="iView">FRENTE</span></div>
+        <div class="info-row"><span class="key">Talla</span><span class="val" id="iSize">XS</span></div>
+      </div>
+    </div>
+
+    <div class="sec">
+      <div class="sec-title">Acciones</div>
+      <div style="display:flex;flex-direction:column;gap:6px;">
+        <button class="btn-sm" onclick="exportPNG()" style="padding:9px;border:1px solid var(--accent);color:var(--accent);background:none;font-family:'DM Mono';font-size:10px;border-radius:var(--radius);cursor:pointer;letter-spacing:1px;">EXPORTAR PNG HD</button>
+        <button class="btn-sm" onclick="exportJPG()" style="padding:9px;border:1px solid var(--border2);color:var(--muted2);background:none;font-family:'DM Mono';font-size:10px;border-radius:var(--radius);cursor:pointer;letter-spacing:1px;">EXPORTAR JPG</button>
+        <button class="btn-sm" onclick="resetAll()" style="padding:9px;border:1px solid #333;color:var(--muted);background:none;font-family:'DM Mono';font-size:10px;border-radius:var(--radius);cursor:pointer;letter-spacing:1px;">RESETEAR TODO</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+</div><!-- end main -->
+
+<div class="toast" id="toast">✓ EXPORTADO CON ÉXITO</div>
+
+<script>
+const mc = document.getElementById('mc');
+const ctx = mc.getContext('2d');
+const W = mc.width, H = mc.height;
+
+const PALETTES = {
+  midnight:['#1a1a1a','#141414','#0d0d0d'],
+  snow:['#f5f5f5','#e8e8e8','#d0d0d0'],
+  navy:['#1a2744','#152038','#0e1525'],
+  forest:['#1a3a1a','#142e14','#0e200e'],
+  crimson:['#8b1a1a','#711414','#550e0e'],
+  sand:['#c8b89a','#b5a487','#9e8e70'],
+  raglan:['#f5f5f5','#1a1a1a','#0d0d0d'],
+};
+
+const SWATCHES = ['#1a1a1a','#f5f5f5','#8b1a1a','#1a2744','#1a3a1a','#c8b89a','#4a1a4a','#d4af37','#2c4a5a','#8b4513','#ff6b35','#2d5a27','#1b4f72','#7d3c98','#e74c3c','#16a085'];
+
+let S = {
+  garment:'hoodie', view:'front', size:'XS',
+  color:'#1a1a1a', sleeveColor:'#141414', ribColor:'#0d0d0d',
+  logo:null, logoX:50, logoY:42, logoSize:50, logoOp:1, logoRot:0, logoFlipH:false, logoFlipV:false,
+  text:'', textSub:'', textColor:'#ffffff', textSubColor:'#cccccc',
+  textSize:32, textSubSize:18, textLetterSpacing:0, textY:65, textAlign:'left',
+  font:"'Bebas Neue'", textFx:'shadow',
+  seams:true, shadows:true, transp:false,
+  zoom:100, drag:false, dragOffX:0, dragOffY:0,
+  mode:'design', ltab:0
+};
+
+// Build palette
+const pal = document.getElementById('mainPalette');
+SWATCHES.forEach(c => {
+  const s = document.createElement('div');
+  s.className='c-swatch'+(c===S.color?' active':'');
+  s.style.background=c;
+  if(c==='#f5f5f5')s.style.border='1px solid #444';
+  s.onclick=()=>{
+    document.querySelectorAll('.c-swatch').forEach(x=>x.classList.remove('active'));
+    s.classList.add('active');
+    S.color=c; S.sleeveColor=shade(c,-15); S.ribColor=shade(c,-30);
+    document.getElementById('garmentColor').value=c;
+    updateInfo(); drawAll();
+  };
+  pal.appendChild(s);
+});
+
+function shade(col, p){
+  let r=parseInt(col.slice(1,3),16),g=parseInt(col.slice(3,5),16),b=parseInt(col.slice(5,7),16);
+  r=Math.max(0,Math.min(255,r+p)); g=Math.max(0,Math.min(255,g+p)); b=Math.max(0,Math.min(255,b+p));
+  return '#'+[r,g,b].map(x=>x.toString(16).padStart(2,'0')).join('');
+}
+
+function lerp(a,b,t){return a+(b-a)*t;}
+
+// ============================================================
+// DRAW GARMENTS
+// ============================================================
+function drawGarment(c, view, garment, sw, rib, seams, shadows, transp){
+  const sc = shade(sw||S.sleeveColor, 0);
+  const rc = rib||S.ribColor;
+  if(!transp){
+    c.fillStyle='#0f0f0f';
+    c.fillRect(0,0,W,H);
+  }
+
+  if(garment==='hoodie') drawHoodie(c,view,S.color,sc,rc,seams,shadows);
+  else if(garment==='tshirt') drawTshirt(c,view,S.color,sc,rc,seams,shadows);
+  else if(garment==='longsleeve') drawLongSleeve(c,view,S.color,sc,rc,seams,shadows);
+  else if(garment==='raglan') drawRaglan(c,view,S.color,sc,rc,seams,shadows);
+  else if(garment==='tanktop') drawTankTop(c,view,S.color,sc,rc,seams,shadows);
+  else if(garment==='crewneck') drawCrewneck(c,view,S.color,sc,rc,seams,shadows);
+}
+
+function drawHoodie(c,view,col,sl,rib,seams,shad){
+  const d=shade(col,-25), l=shade(col,15), dk=shade(col,-50);
+  if(view==='front'||view==='back'){
+    // Body
+    c.fillStyle=col;
+    c.beginPath();c.moveTo(155,165);c.lineTo(95,188);c.lineTo(75,325);c.lineTo(88,525);c.lineTo(472,525);c.lineTo(485,325);c.lineTo(465,188);c.lineTo(405,165);c.quadraticCurveTo(280,148,155,165);c.closePath();c.fill();
+    if(shad){
+      const g=c.createLinearGradient(155,165,472,525);
+      g.addColorStop(0,'rgba(255,255,255,0.04)');g.addColorStop(.5,'rgba(0,0,0,0.08)');g.addColorStop(1,'rgba(0,0,0,0.15)');
+      c.fillStyle=g;c.beginPath();c.moveTo(155,165);c.lineTo(95,188);c.lineTo(75,325);c.lineTo(88,525);c.lineTo(472,525);c.lineTo(485,325);c.lineTo(465,188);c.lineTo(405,165);c.quadraticCurveTo(280,148,155,165);c.closePath();c.fill();
+    }
+    // Sleeves
+    c.fillStyle=sl;
+    c.beginPath();c.moveTo(95,188);c.lineTo(42,208);c.lineTo(32,378);c.lineTo(75,383);c.lineTo(85,325);c.lineTo(100,235);c.closePath();c.fill();
+    c.beginPath();c.moveTo(465,188);c.lineTo(518,208);c.lineTo(528,378);c.lineTo(485,383);c.lineTo(475,325);c.lineTo(460,235);c.closePath();c.fill();
+    // Hood
+    c.fillStyle=d;
+    c.beginPath();c.moveTo(155,165);c.quadraticCurveTo(185,72,280,62);c.quadraticCurveTo(375,72,405,165);c.quadraticCurveTo(345,152,280,150);c.quadraticCurveTo(215,152,155,165);c.closePath();c.fill();
+    if(view==='front'){
+      c.fillStyle=dk;
+      c.beginPath();c.moveTo(210,163);c.quadraticCurveTo(230,100,280,94);c.quadraticCurveTo(330,100,350,163);c.quadraticCurveTo(315,158,280,156);c.quadraticCurveTo(245,158,210,163);c.closePath();c.fill();
+      // Pocket
+      c.fillStyle=d;
+      c.beginPath();c.roundRect(195,395,170,88,6);c.closePath();c.fill();
+      if(shad){c.fillStyle='rgba(0,0,0,0.2)';c.beginPath();c.roundRect(195,395,170,88,6);c.closePath();c.fill();}
+      // Center seam
+      if(seams){c.strokeStyle=dk;c.lineWidth=1.5;c.setLineDash([]);c.beginPath();c.moveTo(280,153);c.lineTo(280,395);c.stroke();}
+    } else {
+      // Back hood
+      c.fillStyle=shade(d,10);
+      c.beginPath();c.moveTo(175,163);c.quadraticCurveTo(200,95,280,85);c.quadraticCurveTo(360,95,385,163);c.quadraticCurveTo(340,155,280,153);c.quadraticCurveTo(220,155,175,163);c.closePath();c.fill();
+    }
+    // Ribs
+    c.fillStyle=rib;
+    c.fillRect(82,520,396,14);
+    c.fillRect(28,375,46,12);
+    c.fillRect(486,375,46,12);
+    // Seam lines
+    if(seams){
+      c.strokeStyle=shade(col,-40);c.lineWidth=1;c.setLineDash([3,3]);
+      c.beginPath();c.moveTo(95,195);c.lineTo(78,315);c.stroke();
+      c.beginPath();c.moveTo(465,195);c.lineTo(482,315);c.stroke();
+      c.setLineDash([]);
+    }
+  } else {
+    // Side view
+    const flip=view==='right';
+    c.save();if(flip){c.translate(W,0);c.scale(-1,1);}
+    c.fillStyle=col;c.beginPath();c.moveTo(165,155);c.lineTo(415,155);c.lineTo(425,525);c.lineTo(155,525);c.closePath();c.fill();
+    c.fillStyle=sl;c.beginPath();c.moveTo(140,168);c.lineTo(165,155);c.lineTo(165,405);c.lineTo(128,408);c.lineTo(118,225);c.closePath();c.fill();
+    c.fillStyle=d;c.beginPath();c.moveTo(165,155);c.quadraticCurveTo(215,65,280,58);c.quadraticCurveTo(360,65,390,140);c.lineTo(390,155);c.quadraticCurveTo(300,145,165,155);c.closePath();c.fill();
+    c.fillStyle=rib;c.fillRect(155,520,270,14);c.fillRect(116,401,46,12);
+    c.restore();
+  }
+}
+
+function drawTshirt(c,view,col,sl,rib,seams,shad){
+  const d=shade(col,-20), dk=shade(col,-45);
+  if(view==='front'||view==='back'){
+    c.fillStyle=col;
+    c.beginPath();c.moveTo(160,155);c.lineTo(95,182);c.lineTo(78,322);c.lineTo(90,525);c.lineTo(470,525);c.lineTo(482,322);c.lineTo(465,182);c.lineTo(400,155);c.quadraticCurveTo(280,138,160,155);c.closePath();c.fill();
+    if(shad){const g=c.createLinearGradient(160,155,470,525);g.addColorStop(0,'rgba(255,255,255,0.05)');g.addColorStop(1,'rgba(0,0,0,0.12)');c.fillStyle=g;c.beginPath();c.moveTo(160,155);c.lineTo(95,182);c.lineTo(78,322);c.lineTo(90,525);c.lineTo(470,525);c.lineTo(482,322);c.lineTo(465,182);c.lineTo(400,155);c.quadraticCurveTo(280,138,160,155);c.closePath();c.fill();}
+    c.fillStyle=sl;
+    c.beginPath();c.moveTo(95,182);c.lineTo(45,205);c.lineTo(38,318);c.lineTo(78,322);c.lineTo(88,260);c.lineTo(100,228);c.closePath();c.fill();
+    c.beginPath();c.moveTo(465,182);c.lineTo(515,205);c.lineTo(522,318);c.lineTo(482,322);c.lineTo(472,260);c.lineTo(460,228);c.closePath();c.fill();
+    // Neck
+    c.fillStyle=rib;
+    if(view==='front'){c.beginPath();c.arc(280,155,52,Math.PI*.15,Math.PI*.85);c.lineWidth=10;c.strokeStyle=rib;c.stroke();}
+    else{c.beginPath();c.arc(280,155,48,Math.PI*.1,Math.PI*.9);c.lineWidth=8;c.strokeStyle=rib;c.stroke();}
+    c.fillRect(82,520,396,12);c.fillRect(32,312,48,10);c.fillRect(480,312,48,10);
+    if(seams){c.strokeStyle=dk;c.lineWidth=1;c.setLineDash([3,3]);c.beginPath();c.moveTo(95,188);c.lineTo(80,312);c.stroke();c.beginPath();c.moveTo(465,188);c.lineTo(480,312);c.stroke();c.setLineDash([]);}
+  } else {
+    const flip=view==='right';c.save();if(flip){c.translate(W,0);c.scale(-1,1);}
+    c.fillStyle=col;c.beginPath();c.moveTo(165,148);c.lineTo(415,148);c.lineTo(422,525);c.lineTo(158,525);c.closePath();c.fill();
+    c.fillStyle=sl;c.beginPath();c.moveTo(138,162);c.lineTo(165,148);c.lineTo(165,325);c.lineTo(128,325);c.lineTo(120,215);c.closePath();c.fill();
+    c.fillStyle=rib;c.fillRect(158,520,264,12);c.fillRect(118,318,46,10);
+    c.restore();
+  }
+}
+
+function drawLongSleeve(c,view,col,sl,rib,seams,shad){
+  const d=shade(col,-20),dk=shade(col,-45);
+  if(view==='front'||view==='back'){
+    c.fillStyle=col;c.beginPath();c.moveTo(160,155);c.lineTo(95,182);c.lineTo(70,430);c.lineTo(90,525);c.lineTo(470,525);c.lineTo(490,430);c.lineTo(465,182);c.lineTo(400,155);c.quadraticCurveTo(280,138,160,155);c.closePath();c.fill();
+    c.fillStyle=sl;c.beginPath();c.moveTo(95,182);c.lineTo(42,205);c.lineTo(30,440);c.lineTo(72,448);c.lineTo(80,300);c.lineTo(100,228);c.closePath();c.fill();
+    c.beginPath();c.moveTo(465,182);c.lineTo(518,205);c.lineTo(530,440);c.lineTo(488,448);c.lineTo(480,300);c.lineTo(460,228);c.closePath();c.fill();
+    c.fillStyle=rib;c.beginPath();c.arc(280,155,50,Math.PI*.15,Math.PI*.85);c.lineWidth=9;c.strokeStyle=rib;c.stroke();
+    c.fillRect(82,520,396,12);c.fillRect(26,440,48,12);c.fillRect(486,440,48,12);
+  } else {
+    const flip=view==='right';c.save();if(flip){c.translate(W,0);c.scale(-1,1);}
+    c.fillStyle=col;c.beginPath();c.moveTo(165,148);c.lineTo(415,148);c.lineTo(422,525);c.lineTo(158,525);c.closePath();c.fill();
+    c.fillStyle=sl;c.beginPath();c.moveTo(135,162);c.lineTo(165,148);c.lineTo(165,430);c.lineTo(122,442);c.lineTo(115,215);c.closePath();c.fill();
+    c.fillStyle=rib;c.fillRect(158,520,264,12);c.fillRect(110,434,48,12);c.restore();
+  }
+}
+
+function drawRaglan(c,view,col,sl,rib,seams,shad){
+  // White body + colored sleeves
+  const body='#f5f5f5', sleeve=sl;
+  if(view==='front'||view==='back'){
+    c.fillStyle=body;c.beginPath();c.moveTo(160,155);c.lineTo(95,182);c.lineTo(78,322);c.lineTo(90,525);c.lineTo(470,525);c.lineTo(482,322);c.lineTo(465,182);c.lineTo(400,155);c.quadraticCurveTo(280,138,160,155);c.closePath();c.fill();
+    c.fillStyle=sleeve;
+    c.beginPath();c.moveTo(95,182);c.lineTo(42,205);c.lineTo(35,318);c.lineTo(78,322);c.lineTo(88,255);c.lineTo(160,155);c.closePath();c.fill();
+    c.beginPath();c.moveTo(465,182);c.lineTo(518,205);c.lineTo(525,318);c.lineTo(482,322);c.lineTo(472,255);c.lineTo(400,155);c.closePath();c.fill();
+    c.strokeStyle=shade(sleeve,-20);c.lineWidth=2;c.setLineDash([]);
+    c.beginPath();c.moveTo(160,155);c.lineTo(88,255);c.stroke();
+    c.beginPath();c.moveTo(400,155);c.lineTo(472,255);c.stroke();
+    c.fillStyle=rib;c.beginPath();c.arc(280,155,50,Math.PI*.12,Math.PI*.88);c.lineWidth=9;c.strokeStyle=rib;c.stroke();
+    c.fillRect(82,520,396,12);c.fillRect(30,312,48,10);c.fillRect(482,312,48,10);
+  } else {
+    const flip=view==='right';c.save();if(flip){c.translate(W,0);c.scale(-1,1);}
+    c.fillStyle=body;c.beginPath();c.moveTo(165,148);c.lineTo(415,148);c.lineTo(422,525);c.lineTo(158,525);c.closePath();c.fill();
+    c.fillStyle=sleeve;c.beginPath();c.moveTo(135,162);c.lineTo(165,148);c.lineTo(165,325);c.lineTo(125,325);c.lineTo(118,215);c.closePath();c.fill();
+    c.fillStyle=rib;c.fillRect(158,520,264,12);c.fillRect(115,318,46,10);c.restore();
+  }
+}
+
+function drawTankTop(c,view,col,sl,rib,seams,shad){
+  const d=shade(col,-20);
+  if(view==='front'||view==='back'){
+    c.fillStyle=col;c.beginPath();c.moveTo(195,155);c.lineTo(140,175);c.lineTo(125,350);c.lineTo(135,525);c.lineTo(425,525);c.lineTo(435,350);c.lineTo(420,175);c.lineTo(365,155);c.quadraticCurveTo(280,140,195,155);c.closePath();c.fill();
+    c.fillStyle=rib;c.beginPath();c.arc(280,152,48,Math.PI*.08,Math.PI*.92);c.lineWidth=8;c.strokeStyle=rib;c.stroke();
+    // Armhole
+    c.strokeStyle=rib;c.lineWidth=6;
+    c.beginPath();c.moveTo(195,155);c.quadraticCurveTo(155,195,140,285);c.stroke();
+    c.beginPath();c.moveTo(365,155);c.quadraticCurveTo(405,195,420,285);c.stroke();
+    c.fillStyle=rib;c.fillRect(128,520,304,12);
+  } else {
+    c.fillStyle=col;c.beginPath();c.moveTo(195,148);c.lineTo(365,148);c.lineTo(375,525);c.lineTo(185,525);c.closePath();c.fill();
+    c.fillStyle=rib;c.fillRect(185,520,190,12);
+  }
+}
+
+function drawCrewneck(c,view,col,sl,rib,seams,shad){
+  const d=shade(col,-20),dk=shade(col,-40);
+  if(view==='front'||view==='back'){
+    c.fillStyle=col;c.beginPath();c.moveTo(155,158);c.lineTo(90,185);c.lineTo(72,332);c.lineTo(85,525);c.lineTo(475,525);c.lineTo(488,332);c.lineTo(470,185);c.lineTo(405,158);c.quadraticCurveTo(280,142,155,158);c.closePath();c.fill();
+    c.fillStyle=sl;c.beginPath();c.moveTo(90,185);c.lineTo(38,208);c.lineTo(28,328);c.lineTo(72,332);c.lineTo(82,268);c.lineTo(95,232);c.closePath();c.fill();
+    c.beginPath();c.moveTo(470,185);c.lineTo(522,208);c.lineTo(532,328);c.lineTo(488,332);c.lineTo(478,268);c.lineTo(465,232);c.closePath();c.fill();
+    // Crew neck
+    c.strokeStyle=rib;c.lineWidth=12;
+    c.beginPath();c.arc(280,158,58,Math.PI*.12,Math.PI*.88);c.stroke();
+    c.fillStyle=rib;c.fillRect(78,520,404,13);c.fillRect(24,322,50,12);c.fillRect(486,322,50,12);
+  } else {
+    const flip=view==='right';c.save();if(flip){c.translate(W,0);c.scale(-1,1);}
+    c.fillStyle=col;c.beginPath();c.moveTo(162,150);c.lineTo(418,150);c.lineTo(426,525);c.lineTo(154,525);c.closePath();c.fill();
+    c.fillStyle=sl;c.beginPath();c.moveTo(132,165);c.lineTo(162,150);c.lineTo(162,330);c.lineTo(122,330);c.lineTo(115,218);c.closePath();c.fill();
+    c.fillStyle=rib;c.fillRect(154,520,272,13);c.fillRect(112,323,46,12);c.restore();
+  }
+}
+
+// ============================================================
+// OVERLAY (logo + text)
+// ============================================================
+function drawOverlay(c, cw, ch, scale){
+  scale = scale||1;
+  if(S.logo){
+    c.save();
+    c.globalAlpha=S.logoOp;
+    const lw=(S.logoSize/100)*cw*0.52;
+    const lh=lw*(S.logo.height/S.logo.width);
+    const lx=(S.logoX/100)*cw;
+    const ly=(S.logoY/100)*ch;
+    c.translate(lx,ly);
+    c.rotate(S.logoRot*Math.PI/180);
+    c.scale(S.logoFlipH?-1:1, S.logoFlipV?-1:1);
+    c.drawImage(S.logo,-lw/2,-lh/2,lw,lh);
+    c.restore();
+  }
+  if(S.text){
+    c.save();
+    c.globalAlpha=1;
+    const fs=S.textSize*scale;
+    c.font=`${fs}px ${S.font}`;
+    c.letterSpacing=S.textLetterSpacing+'px';
+    c.fillStyle=S.textColor;
+    const tx=S.textAlign==='center'?cw/2:S.textAlign==='right'?cw-40:40;
+    c.textAlign=S.textAlign==='left'?'left':S.textAlign==='right'?'right':'center';
+    c.textBaseline='middle';
+    const ty=(S.textY/100)*ch;
+    if(S.textFx==='shadow'){c.shadowColor='rgba(0,0,0,0.7)';c.shadowBlur=8;c.shadowOffsetX=2;c.shadowOffsetY=2;}
+    else if(S.textFx==='outline'){c.strokeStyle='#000';c.lineWidth=3;c.strokeText(S.text,tx,ty);}
+    else if(S.textFx==='glow'){c.shadowColor=S.textColor;c.shadowBlur=20;}
+    c.fillText(S.text,tx,ty);
+    c.shadowBlur=0;c.shadowOffsetX=0;c.shadowOffsetY=0;
+    if(S.textSub){
+      const sf=S.textSubSize*scale;
+      c.font=`${sf}px ${S.font}`;
+      c.fillStyle=S.textSubColor;
+      c.fillText(S.textSub,tx,ty+fs+6);
+    }
+    c.restore();
+  }
+}
+
+// ============================================================
+// DRAW ALL
+// ============================================================
+function draw(){
+  ctx.clearRect(0,0,W,H);
+  if(!S.transp){ctx.fillStyle='#0f0f0f';ctx.fillRect(0,0,W,H);}
+  drawGarment(ctx,S.view,S.garment,S.sleeveColor,S.ribColor,S.seams,S.shadows,S.transp);
+  drawOverlay(ctx,W,H,1);
+}
+
+function drawAll(){
+  draw();
+  updateThumbs();
+  updateInfo();
+}
+
+// THUMBNAILS
+function updateThumbs(){
+  const views=['front','back','left'];
+  views.forEach((v,i)=>{
+    const tc=document.getElementById('th'+i);
+    const tctx=tc.getContext('2d');
+    const tw=tc.width,th=tc.height;
+    tctx.clearRect(0,0,tw,th);
+    tctx.fillStyle='#0f0f0f';tctx.fillRect(0,0,tw,th);
+    tctx.save();
+    const scaleX=tw/W, scaleY=th/H, scl=Math.min(scaleX,scaleY);
+    const ox=(tw-W*scl)/2, oy=(th-H*scl)/2;
+    tctx.translate(ox,oy);tctx.scale(scl,scl);
+    drawGarment(tctx,v,S.garment,S.sleeveColor,S.ribColor,S.seams,S.shadows,false);
+    drawOverlay(tctx,W,H,1);
+    tctx.restore();
+  });
+}
+
+// ============================================================
+// INTERACTIONS
+// ============================================================
+function setMode(m){
+  S.mode=m;
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  event.target.classList.add('active');
+  const panels={design:'ltab'+S.ltab,templates:'tmplPanel',layers:'layerPanel',effects:'fxPanel'};
+}
+
+function setLTab(i,el){
+  S.ltab=i;
+  document.querySelectorAll('.ltab').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+  ['ltab0','ltab1','ltab2','ltab3'].forEach((id,idx)=>{
+    document.getElementById(id).style.display=idx===i?'block':'none';
+  });
+}
+
+function setGarment(g,el){
+  S.garment=g;
+  document.querySelectorAll('.garment-item').forEach(x=>x.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('iGarment').textContent=g.toUpperCase();
+  drawAll();
+}
+
+function setView(v,el){
+  S.view=v;
+  if(el){document.querySelectorAll('.view-btn').forEach(x=>x.classList.remove('active'));el.classList.add('active');}
+  document.getElementById('iView').textContent=v.toUpperCase();
+  document.getElementById('cinfo').textContent=`Vista: ${v.toUpperCase()} — ARRASTRA logo · SCROLL zoom`;
+  draw();
+}
+
+function setSize(s,el){
+  S.size=s;
+  document.querySelectorAll('.align-btn').forEach(x=>x.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('iSize').textContent=s;
+}
+
+function toggleOpt(opt,el){
+  el.classList.toggle('on');
+  S[opt]=el.classList.contains('on');
+  drawAll();
+}
+
+function loadLogo(e){
+  const file=e.target.files[0];if(!file)return;
+  const r=new FileReader();
+  r.onload=ev=>{
+    const img=new Image();
+    img.onload=()=>{S.logo=img;document.getElementById('logoOpts').style.display='block';document.getElementById('iLogo').textContent=file.name.slice(0,10);drawAll();};
+    img.src=ev.target.result;
+  };
+  r.readAsDataURL(file);
+}
+
+function updLogo(prop,val){
+  const map={size:'vLogoSize',x:'vLogoX',y:'vLogoY',rot:'vLogoRot',op:'vLogoOp'};
+  const suffix={size:'%',x:'%',y:'%',rot:'°',op:'%'};
+  if(map[prop]) document.getElementById(map[prop]).textContent=val+suffix[prop];
+  if(prop==='size')S.logoSize=+val;
+  else if(prop==='x')S.logoX=+val;
+  else if(prop==='y')S.logoY=+val;
+  else if(prop==='rot')S.logoRot=+val;
+  else if(prop==='op')S.logoOp=val/100;
+  draw();
+}
+
+function flipLogo(d){if(d==='h')S.logoFlipH=!S.logoFlipH;else S.logoFlipV=!S.logoFlipV;draw();}
+function centerLogo(){S.logoX=50;S.logoY=42;draw();}
+function removeLogo(){S.logo=null;document.getElementById('logoOpts').style.display='none';document.getElementById('iLogo').textContent='—';drawAll();}
+
+function updText(prop,val){
+  if(prop==='main'){S.text=val;document.getElementById('iText').textContent=val||'—';}
+  else if(prop==='sub')S.textSub=val;
+  else if(prop==='font')S.font=val;
+  else if(prop==='size'){S.textSize=+val;document.getElementById('vTSize').textContent=val;}
+  else if(prop==='subsize'){S.textSubSize=+val;document.getElementById('vTSubSize').textContent=val;}
+  else if(prop==='letter'){S.textLetterSpacing=+val;document.getElementById('vTLetter').textContent=val;}
+  else if(prop==='y'){S.textY=+val;document.getElementById('vTY').textContent=val;}
+  else if(prop==='color')S.textColor=val;
+  else if(prop==='subcolor')S.textSubColor=val;
+  draw();
+}
+
+function setAlign(a,el){S.textAlign=a;document.querySelectorAll('.align-btn').forEach(x=>x.classList.remove('active'));el.classList.add('active');draw();}
+
+function setTextFx(fx,el){S.textFx=fx;document.querySelectorAll('.fx-item').forEach(x=>x.classList.remove('active'));el.classList.add('active');draw();}
+
+function setGarmentColor(v){S.color=v;S.sleeveColor=shade(v,-15);S.ribColor=shade(v,-30);updateInfo();drawAll();}
+function setSleeveColor(v){S.sleeveColor=v;drawAll();}
+function setRibColor(v){S.ribColor=v;drawAll();}
+
+function applyPalette(name){
+  const p=PALETTES[name];
+  if(!p)return;
+  if(name==='raglan'){S.color='#f5f5f5';S.sleeveColor='#1a1a1a';S.ribColor='#0d0d0d';}
+  else{S.color=p[0];S.sleeveColor=p[1];S.ribColor=p[2];}
+  document.getElementById('garmentColor').value=S.color;
+  document.getElementById('sleeveColor').value=S.sleeveColor;
+  document.getElementById('ribColor').value=S.ribColor;
+  updateInfo();drawAll();
+}
+
+function zoom(delta){
+  if(delta===0)S.zoom=100;
+  else S.zoom=Math.max(50,Math.min(200,S.zoom+delta));
+  document.getElementById('zoomVal').textContent=S.zoom+'%';
+  mc.style.transform=`scale(${S.zoom/100})`;
+}
+
+// Drag logo
+mc.addEventListener('mousedown',e=>{
+  if(!S.logo)return;
+  const r=mc.getBoundingClientRect();
+  const mx=(e.clientX-r.left)*(W/r.width);
+  const my=(e.clientY-r.top)*(H/r.height);
+  const lx=(S.logoX/100)*W, ly=(S.logoY/100)*H;
+  const lw=(S.logoSize/100)*W*0.52;
+  if(Math.abs(mx-lx)<lw/2+20&&Math.abs(my-ly)<lw/2+20){
+    S.drag=true;S.dragOffX=mx-lx;S.dragOffY=my-ly;
+    mc.style.cursor='grabbing';
+  }
+});
+mc.addEventListener('mousemove',e=>{
+  if(!S.drag)return;
+  const r=mc.getBoundingClientRect();
+  const mx=(e.clientX-r.left)*(W/r.width);
+  const my=(e.clientY-r.top)*(H/r.height);
+  S.logoX=Math.max(5,Math.min(95,((mx-S.dragOffX)/W)*100));
+  S.logoY=Math.max(5,Math.min(95,((my-S.dragOffY)/H)*100));
+  draw();
+});
+mc.addEventListener('mouseup',()=>{S.drag=false;mc.style.cursor='default';});
+mc.addEventListener('mouseleave',()=>{S.drag=false;});
+mc.addEventListener('wheel',e=>{
+  if(!S.logo)return;
+  e.preventDefault();
+  S.logoSize=Math.max(5,Math.min(100,S.logoSize-e.deltaY*0.04));
+  document.getElementById('vLogoSize').textContent=Math.round(S.logoSize)+'%';
+  const sl=document.querySelector('#ltab1 input[type=range]');
+  if(sl)sl.value=Math.round(S.logoSize);
+  draw();
+},{passive:false});
+
+function exportPNG(){
+  const link=document.createElement('a');
+  link.download='threadcraft-design.png';
+  link.href=mc.toDataURL('image/png');
+  link.click();
+  showToast('PNG EXPORTADO SIN MARCA DE AGUA');
+}
+function exportJPG(){
+  const link=document.createElement('a');
+  link.download='threadcraft-design.jpg';
+  link.href=mc.toDataURL('image/jpeg',0.95);
+  link.click();
+  showToast('JPG EXPORTADO EXITOSAMENTE');
+}
+function saveDesign(){
+  const data=JSON.stringify({color:S.color,garment:S.garment,text:S.text,textSub:S.textSub});
+  localStorage.setItem('threadcraft_design',data);
+  showToast('DISEÑO GUARDADO');
+}
+function resetAll(){
+  S.logo=null;S.text='';S.textSub='';S.color='#1a1a1a';S.sleeveColor='#141414';S.ribColor='#0d0d0d';
+  S.logoX=50;S.logoY=42;S.logoSize=50;S.logoOp=1;S.logoRot=0;
+  document.getElementById('logoOpts').style.display='none';
+  document.getElementById('textMain').value='';
+  document.getElementById('textSub').value='';
+  document.getElementById('garmentColor').value='#1a1a1a';
+  updateInfo();drawAll();
+  showToast('DISEÑO RESETEADO');
+}
+
+function showToast(msg){
+  const t=document.getElementById('toast');
+  t.textContent='✓ '+msg;
+  t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),2500);
+}
+
+function updateInfo(){
+  document.getElementById('iColor').textContent=S.color;
+  document.getElementById('iGarment').textContent=S.garment.toUpperCase();
+}
+
+// Init
+drawAll();
+</script>
+</body>
+</html>
